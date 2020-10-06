@@ -1,5 +1,6 @@
 use std::env;
 use smallgit::init;
+use smallgit::add;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -15,6 +16,7 @@ fn main() {
         if args.len() != 3 {
             return;
         }
-        let path = &args[3];
+        let path = &args[2];
+        add::add_file::add_file(path);
     }
 }
