@@ -23,6 +23,13 @@ pub fn create_init_file() -> Result<(), String> {
       }
   }
 
+  match File::create("./.smallgit/refs/main") {
+    Ok(_) => {}
+    Err(_) => {
+        return Err("failed to create  file".to_string());
+    }
+}
+
   match fs::create_dir("./.smallgit/objects") {
       Ok(_) => {}
       Err(_) => {

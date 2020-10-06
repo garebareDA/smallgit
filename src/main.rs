@@ -11,7 +11,10 @@ fn main() {
         return;
     }
 
-    if args[2] == "add" {
-        
+    if args[1] == "add" {
+        if args.len() != 3 {
+            return;
+        }
+        let path = &args[3];
     }
 }
