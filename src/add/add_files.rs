@@ -18,8 +18,10 @@ impl AddFile {
 
   pub fn add_file(&mut self) {
     self.ignore_file();
-    println!("{:?}",self.ignore);
     let dir_vec = self.read_dir(&self.path);
+    self.set_paths(&dir_vec);
+    println!("{:?}", dir_vec);
+    println!("{:?}",self.ignore);
   }
 
   fn read_dir(&self, path: &str) -> Vec<String> {
@@ -29,7 +31,6 @@ impl AddFile {
       let path_in = path.unwrap();
       let paths = path_in.path().display().to_string();
       path_vec.push(paths.to_string());
-
       if path_in.file_type().unwrap().is_dir() {
         let mut paths_vec = self.read_dir(&paths);
         if !paths_vec.is_empty() {
@@ -37,8 +38,11 @@ impl AddFile {
         };
       }
     }
-
     return path_vec;
+  }
+
+  fn is_gitignore() {
+    //regexでパスの判定
   }
 
   fn ignore_file(&mut self) {
