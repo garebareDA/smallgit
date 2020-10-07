@@ -17,6 +17,7 @@ fn main() {
             return;
         }
         let path = &args[2];
-        add::add_file::add_file(path);
+        let mut add_file = add::add_files::AddFile::new(path);
+        add_file.add_file();
     }
 }
