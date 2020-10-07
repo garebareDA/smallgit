@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 regex = "1"
+flate2 = "1.0"
