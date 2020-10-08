@@ -1,8 +1,5 @@
 use std::fs;
 use std::io::{BufRead, BufReader};
-
-use regex::Regex;
-
 pub struct AddFile {
   pub path: String,
   pub paths: Vec<String>,
@@ -23,7 +20,6 @@ impl AddFile {
     let dir_vec = self.read_dir(&self.path);
     self.set_paths(&dir_vec);
     println!("{:?}", dir_vec);
-    println!("{:?}", self.ignore);
   }
 
   fn read_dir(&self, path: &str) -> Vec<String> {
@@ -46,17 +42,6 @@ impl AddFile {
     return path_vec;
   }
 
-  fn is_gitignore(&self, path: &str) -> bool {
-    for ignore in self.ignore.iter() {
-      let re = Regex::new(ignore).unwrap();
-      match re.captures(path) {
-        None => {}
-        Some(_) => return true,
-      }
-    }
-    return false;
-  }
-
   fn ignore_file(&mut self) {
     let git_ignore_path = "./.gitignore";
     match fs::File::open(git_ignore_path) {
@@ -71,6 +56,30 @@ impl AddFile {
         return;
       }
     }
+  }
+
+  fn is_gitignore(&self, path: &str) -> bool {
+    let mut path = path.to_string();
+    path.remove(0);
+    let mut path:Vec<&str> = path.split("/").collect();
+    path.retain(|x| x != &"");
+    for ignore in self.ignore.iter() {
+      let mut ignore_sprits:Vec<&str> = ignore.split("/").collect();
+      ignore_sprits.retain(|x| x != &"");
+      let ignore_len = ignore_sprits.len() - 1;
+      'inner:for (index, ignore_sprlit) in ignore_sprits.iter().enumerate() {
+        let path_split = path[index];
+        if ignore_sprlit == &path_split {
+          if ignore_len == index {
+            return true;
+          }
+          continue 'inner;
+        }else {
+          break 'inner;
+        }
+      }
+    }
+    return false;
   }
 
   pub fn get_paths(&self) -> &Vec<String> {
