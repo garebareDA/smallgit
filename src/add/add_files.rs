@@ -1,6 +1,8 @@
 use std::fs;
 use std::io::{BufRead, BufReader};
 
+use regex::Regex;
+
 pub struct AddFile {
   pub path: String,
   pub paths: Vec<String>,
@@ -8,9 +10,9 @@ pub struct AddFile {
 }
 
 impl AddFile {
-  pub fn new(path:&str) -> Self {
+  pub fn new(path: &str) -> Self {
     Self {
-      path:path.to_string(),
+      path: path.to_string(),
       paths: Vec::new(),
       ignore: Vec::new(),
     }
@@ -21,7 +23,7 @@ impl AddFile {
     let dir_vec = self.read_dir(&self.path);
     self.set_paths(&dir_vec);
     println!("{:?}", dir_vec);
-    println!("{:?}",self.ignore);
+    println!("{:?}", self.ignore);
   }
 
   fn read_dir(&self, path: &str) -> Vec<String> {
@@ -30,6 +32,9 @@ impl AddFile {
     for path in file {
       let path_in = path.unwrap();
       let paths = path_in.path().display().to_string();
+      if self.is_gitignore(&paths) || paths == "./.smallgit" || paths == "./.git" {
+        continue;
+      }
       path_vec.push(paths.to_string());
       if path_in.file_type().unwrap().is_dir() {
         let mut paths_vec = self.read_dir(&paths);
@@ -41,8 +46,15 @@ impl AddFile {
     return path_vec;
   }
 
-  fn is_gitignore() {
-    //regexでパスの判定
+  fn is_gitignore(&self, path: &str) -> bool {
+    for ignore in self.ignore.iter() {
+      let re = Regex::new(ignore).unwrap();
+      match re.captures(path) {
+        None => {}
+        Some(_) => return true,
+      }
+    }
+    return false;
   }
 
   fn ignore_file(&mut self) {
@@ -77,7 +89,7 @@ impl AddFile {
     self.paths = ignore.clone();
   }
 
-  pub fn push_ignore(&mut self, ignore_path:&str) {
+  pub fn push_ignore(&mut self, ignore_path: &str) {
     self.ignore.push(ignore_path.to_string());
   }
 }
