@@ -1,4 +1,5 @@
 use std::fs;
+use std::fs::File;
 use std::io::{BufRead, BufReader};
 pub struct AddFile {
   pub path: String,
@@ -15,11 +16,16 @@ impl AddFile {
     }
   }
 
-  pub fn add_file(&mut self) {
+  pub fn add_file(&mut self) -> Result<(), String> {
     self.ignore_file();
-    let dir_vec = self.read_dir(&self.path);
-    self.set_paths(&dir_vec);
-    println!("{:?}", dir_vec);
+    self.set_paths(&self.read_dir(&self.path));
+    match self.write_index() {
+      Ok(_) => {}
+      Err(s) => {
+        return Err(s);
+      }
+    }
+    return Ok(());
   }
 
   fn read_dir(&self, path: &str) -> Vec<String> {
@@ -44,7 +50,7 @@ impl AddFile {
 
   fn ignore_file(&mut self) {
     let git_ignore_path = "./.gitignore";
-    match fs::File::open(git_ignore_path) {
+    match File::open(git_ignore_path) {
       Ok(file) => {
         let reader = BufReader::new(file);
         for line in reader.lines() {
@@ -58,28 +64,37 @@ impl AddFile {
     }
   }
 
+  //相対パスのみ
   fn is_gitignore(&self, path: &str) -> bool {
     let mut path = path.to_string();
     path.remove(0);
-    let mut path:Vec<&str> = path.split("/").collect();
+    let mut path: Vec<&str> = path.split("/").collect();
     path.retain(|x| x != &"");
     for ignore in self.ignore.iter() {
-      let mut ignore_sprits:Vec<&str> = ignore.split("/").collect();
+      let mut ignore_sprits: Vec<&str> = ignore.split("/").collect();
       ignore_sprits.retain(|x| x != &"");
       let ignore_len = ignore_sprits.len() - 1;
-      'inner:for (index, ignore_sprlit) in ignore_sprits.iter().enumerate() {
+      'inner: for (index, ignore_sprlit) in ignore_sprits.iter().enumerate() {
         let path_split = path[index];
         if ignore_sprlit == &path_split {
           if ignore_len == index {
             return true;
           }
           continue 'inner;
-        }else {
+        } else {
           break 'inner;
         }
       }
     }
     return false;
+  }
+
+  fn write_index(&self) -> Result<(), String> {
+    let index_path = "./.smallgit/index";
+    //とりあえず objectsに書きだし
+    //indexステータスをなしでに書き込み
+
+    return Ok(());
   }
 
   pub fn get_paths(&self) -> &Vec<String> {
