@@ -8,4 +8,4 @@ edition = "2018"
 
 [dependencies]
 flate2 = "1.0"
-sha-1 = "0.9.1"
+rust-crypto = "^0.2"
