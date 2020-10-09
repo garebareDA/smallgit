@@ -1,9 +1,12 @@
 use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::Path;
+
 pub struct AddFile {
   pub path: String,
-  pub paths: Vec<String>,
+  pub paths_dir: Vec<String>,
+  pub paths_file: Vec<String>,
   pub ignore: Vec<String>,
 }
 
@@ -11,41 +14,70 @@ impl AddFile {
   pub fn new(path: &str) -> Self {
     Self {
       path: path.to_string(),
-      paths: Vec::new(),
+      paths_dir: Vec::new(),
+      paths_file: Vec::new(),
       ignore: Vec::new(),
     }
   }
 
   pub fn add_file(&mut self) -> Result<(), String> {
     self.ignore_file();
-    self.set_paths(&self.read_dir(&self.path));
+    match &self.read_dir(&self.path) {
+      Ok((dir, file)) => {
+        self.set_paths_dir(&dir);
+        self.set_paths_file(&file);
+      }
+      Err(s) => {
+        return Err(s.to_string());
+      }
+    };
+
     match self.write_index() {
       Ok(_) => {}
       Err(s) => {
         return Err(s);
       }
     }
+
     return Ok(());
   }
 
-  fn read_dir(&self, path: &str) -> Vec<String> {
+  fn read_dir(&self, path: &str) -> Result<(Vec<String>, Vec<String>), String> {
+    let mut path_dir: Vec<String> = Vec::new();
+    let mut path_file: Vec<String> = Vec::new();
+    let path_is = Path::new(path);
+    if path_is.is_file() {
+      path_file.push(path.to_string());
+      return Ok((path_dir, path_file));
+    }
+
+    if !path_is.exists() {
+      return Err(format!("not foud {}", path));
+    }
+
     let file = fs::read_dir(path).unwrap();
-    let mut path_vec: Vec<String> = Vec::new();
     for path in file {
       let path_in = path.unwrap();
       let paths = path_in.path().display().to_string();
       if self.is_gitignore(&paths) || paths == "./.smallgit" || paths == "./.git" {
         continue;
       }
-      path_vec.push(paths.to_string());
+
       if path_in.file_type().unwrap().is_dir() {
-        let mut paths_vec = self.read_dir(&paths);
-        if !paths_vec.is_empty() {
-          path_vec.append(&mut paths_vec)
+        path_dir.push(paths.to_string());
+        let (mut dir, mut file) = self.read_dir(&paths).unwrap();
+        if !dir.is_empty() {
+          path_dir.append(&mut dir);
         };
+
+        if !file.is_empty() {
+          path_file.append(&mut file);
+        }
+      } else {
+        path_file.push(paths.to_string())
       }
     }
-    return path_vec;
+    return Ok((path_dir, path_file));
   }
 
   fn ignore_file(&mut self) {
@@ -91,26 +123,20 @@ impl AddFile {
 
   fn write_index(&self) -> Result<(), String> {
     let index_path = "./.smallgit/index";
+    let objects_path = "./.smallgit/objects";
     //とりあえず objectsに書きだし
     //indexステータスをなしでに書き込み
+    //まだ前回のコミットと比較できないため
 
     return Ok(());
   }
 
-  pub fn get_paths(&self) -> &Vec<String> {
-    return &self.paths;
+  pub fn set_paths_dir(&mut self, dir: &Vec<String>) {
+    self.paths_dir = dir.clone();
   }
 
-  pub fn get_ignore(&self) -> &Vec<String> {
-    return &self.ignore;
-  }
-
-  pub fn set_paths(&mut self, paths: &Vec<String>) {
-    self.paths = paths.clone();
-  }
-
-  pub fn set_ignore(&mut self, ignore: &Vec<String>) {
-    self.paths = ignore.clone();
+  pub fn set_paths_file(&mut self, file: &Vec<String>) {
+    self.paths_file = file.clone();
   }
 
   pub fn push_ignore(&mut self, ignore_path: &str) {
