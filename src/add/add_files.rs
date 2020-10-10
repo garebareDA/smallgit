@@ -1,3 +1,4 @@
+use super::super::common::serch_dir::SerchDir;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use flate2::write::ZlibEncoder;
@@ -6,9 +7,8 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
-use super::super::common::serch_dir::SerchDir;
 
-pub fn write_index(dir:SerchDir) -> Result<(), String> {
+pub fn write_index(dir: SerchDir) -> Result<(), String> {
   //indexステータスをなしでに書き込み
   //まだ前回のコミットと比較できないため
   let index_path = Path::new("./.smallgit/index");
@@ -17,7 +17,15 @@ pub fn write_index(dir:SerchDir) -> Result<(), String> {
   }
   let mut index_file = File::create(index_path).unwrap();
   for path in dir.get_paths_file().iter() {
-    index_file.write(&format!("{}\n", path).as_bytes()).unwrap();
+    let content = fs::read_to_string(path).unwrap();
+    let format_content = format!("blob {}\0{}", content.as_bytes().len(), content);
+    let mut hasher = Sha1::new();
+    hasher.input_str(&format_content);
+    let hex = hasher.result_str();
+
+    index_file
+      .write(&format!("{} {}\n", path, hex).as_bytes())
+      .unwrap();
   }
   return Ok(());
 }
@@ -43,15 +51,11 @@ pub fn create_objects() -> Result<(), String> {
         let content = fs::read_to_string(add_path).unwrap();
         let format_content = format!("blob {}\0{}", content.as_bytes().len(), content);
 
-        let mut hasher = Sha1::new();
-        hasher.input_str(&format_content);
-        let hex = hasher.result_str();
-
         let mut e = ZlibEncoder::new(Vec::new(), Compression::default());
         e.write_all(format_content.as_bytes()).unwrap();
         match e.finish() {
           Ok(byte) => {
-            let objects_path_format = format!("{}/{}", objects_path, hex);
+            let objects_path_format = format!("{}/{}", objects_path, line_splits[1]);
             let mut file = File::create(objects_path_format).unwrap();
             file.write_all(&byte).unwrap();
           }
