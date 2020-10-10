@@ -36,4 +36,8 @@ fn main() {
             }
         }
     }
+
+    if args[1] == "commit" {
+        
+    }
 }
