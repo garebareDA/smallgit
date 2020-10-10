@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
+#[derive(Debug)]
 struct IndexReaded {
   path: String,
   hex: String,
@@ -29,15 +30,22 @@ pub struct CommitObject {
 }
 
 impl CommitObject {
-
-  pub fn new() ->Self {
-    Self{
-      index: Vec::new(),
-    }
+  pub fn new() -> Self {
+    Self { index: Vec::new() }
   }
 
-  pub fn commit_file(&mut self) {
-    self.read_index();
+  pub fn commit_file(&mut self, path:&Vec<String>) -> Result<(), String> {
+    match self.read_index() {
+      Ok(()) => {}
+      Err(s) => {
+        return Err(s);
+      }
+    }
+
+    self.create_tree(path);
+    println!("{:?}", self.index);
+
+    return Ok(());
   }
 
   fn read_index(&mut self) -> Result<(), String> {
@@ -48,7 +56,9 @@ impl CommitObject {
         for line in reader.lines() {
           let line = line.unwrap();
           let line_splits: Vec<&str> = line.split(" ").collect();
-          let readed = IndexReaded::new(line_splits[0], line_splits[1]);
+          let mut path_format = line_splits[0].to_string();
+          path_format.remove(0);
+          let readed = IndexReaded::new(&path_format, line_splits[1]);
           self.index.push(readed);
         }
       }
@@ -56,7 +66,11 @@ impl CommitObject {
         return Err("index file not found error".to_string());
       }
     }
-
     return Ok(());
+  }
+
+  fn create_tree(&self, path: &Vec<String>) {
+    let objects_path = Path::new("./.smallgit/objects");
+    
   }
 }

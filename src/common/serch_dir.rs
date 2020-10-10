@@ -126,6 +126,10 @@ impl SerchDir {
     return &self.paths_file;
   }
 
+  pub fn get_paths_dir(&self) -> &Vec<String> {
+    return &self.paths_dir;
+  }
+
   pub fn push_ignore(&mut self, ignore_path: &str) {
     self.ignore.push(ignore_path.to_string());
   }

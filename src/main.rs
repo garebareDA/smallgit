@@ -1,6 +1,7 @@
 use smallgit::add;
 use smallgit::common;
 use smallgit::init;
+use smallgit::commit;
 use std::env;
 use std::path::Path;
 
@@ -45,6 +46,9 @@ fn main() {
     }
 
     if args[1] == "commit" {
-        
+       let mut commit = commit::commit_file::CommitObject::new();
+       let mut paths = common::serch_dir::SerchDir::new("./");
+        paths.serch_dir().unwrap();
+       commit.commit_file(&paths.get_paths_dir());
     }
 }
