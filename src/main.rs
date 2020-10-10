@@ -1,4 +1,5 @@
 use smallgit::add;
+use smallgit::common;
 use smallgit::init;
 use std::env;
 
@@ -17,10 +18,22 @@ fn main() {
             return;
         }
         let path = &args[2];
-        let mut add_file = add::add_files::AddFile::new(path);
-        match add_file.add_file() {
-            Ok(_) => {}
-            Err(e) => eprintln!("{}", e),
+        let mut paths = common::serch_dir::SerchDir::new(path);
+        paths.serch_dir().unwrap();
+        match add::add_files::write_index(paths) {
+            Ok(()) => {}
+            Err(s) => {
+                eprintln!("{}", s);
+                return;
+            }
+        }
+
+        match add::add_files::create_objects() {
+            Ok(()) => {}
+            Err(s) => {
+                eprintln!("{}", s);
+                return;
+            }
         }
     }
 }
