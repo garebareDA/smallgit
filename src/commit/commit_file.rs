@@ -1,15 +1,25 @@
+use super::index_readed::IndexReaded;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use super::index_readed::IndexReaded;
+
+pub struct TakeObject {
+  pub file: String,
+  pub dir: String,
+  pub hex: String,
+}
 
 pub struct CommitObject {
   index: Vec<IndexReaded>,
+  object: Vec<TakeObject>,
 }
 
 impl CommitObject {
   pub fn new() -> Self {
-    Self { index: Vec::new() }
+    Self {
+      index: Vec::new(),
+      object: Vec::new(),
+    }
   }
 
   pub fn commit_file(&mut self, path: &Vec<String>) -> Result<(), String> {
@@ -19,9 +29,8 @@ impl CommitObject {
         return Err(s);
       }
     }
-
-    self.create_tree(path);
-
+    self.read_object(path);
+    
     return Ok(());
   }
 
@@ -46,11 +55,10 @@ impl CommitObject {
     return Ok(());
   }
 
-  fn create_tree(&self, paths_dirs: &Vec<String>) {
-    let objects_path = Path::new("./.smallgit/objects");
+  fn read_object(&mut self, paths_dirs: &Vec<String>) {
     for paths in self.index.iter() {
-      let path = paths.clone().get_path();
-      let hex = paths.clone().get_hex();
+      let path = &paths.clone().get_path();
+      let hex = &paths.clone().get_hex();
       for paths_dir in paths_dirs.iter() {
         let mut path_dir = paths_dir.to_string();
         path_dir.remove(0);
@@ -59,20 +67,31 @@ impl CommitObject {
         let dir_len = paths_dir_split.len() - 1;
         let path_len = path_split.len() - 2;
         if path_len == 0 {
-          println!("{} {} {}", path, "/", hex);
+          let take_object = TakeObject {
+            file: path.to_string(),
+            dir: "/".to_string(),
+            hex: hex.to_string(),
+          };
+          self.object.push(take_object);
           break;
         }
         for (index, dir) in paths_dir_split.iter().enumerate() {
           if dir == &path_split[index] && (dir_len == path_len) {
             if dir_len == index {
-              println!("{} {} {}", path, path_dir, hex);
+              let take_object = TakeObject {
+                file: path.to_string(),
+                dir: path_dir.to_string(),
+                hex: hex.to_string(),
+              };
+              self.object.push(take_object);
             }
             continue;
-          } else {
-            break;
           }
+          break;
         }
       }
     }
   }
+
+
 }
