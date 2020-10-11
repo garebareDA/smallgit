@@ -31,7 +31,7 @@ impl CommitObject {
       }
     }
     self.read_object(path);
-    println!("{:?}", self.object);
+    self.create_tree(path);
     return Ok(());
   }
 
@@ -91,7 +91,7 @@ impl CommitObject {
 
         for (index, dir) in paths_dir_split.iter().enumerate() {
           if !(dir == &path_split[index]) && !(dir_len == path_len) {
-            break
+            break;
           }
 
           if dir_len == index {
@@ -102,6 +102,22 @@ impl CommitObject {
             };
             self.object.push(take_object);
           }
+          continue;
+        }
+      }
+    }
+  }
+
+  fn create_tree(&self, paths: &Vec<String>) {
+    let mut paths = paths.clone();
+    paths.insert(0, "/".to_string());
+    for path in paths.iter() {
+      let mut path = path.to_string();
+      if path != "/".to_string() {
+        path.remove(0);
+      }
+      for object in self.object.iter() {
+        if object.dir != path {
           continue;
         }
       }
