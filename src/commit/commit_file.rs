@@ -1,29 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-
-#[derive(Clone, Debug)]
-struct IndexReaded {
-  path: String,
-  hex: String,
-}
-
-impl IndexReaded {
-  pub fn new(path: &str, hex: &str) -> Self {
-    Self {
-      path: path.to_string(),
-      hex: hex.to_string(),
-    }
-  }
-
-  pub fn get_path(self) -> String {
-    self.path
-  }
-
-  pub fn get_hex(self) -> String {
-    self.hex
-  }
-}
+use super::index_readed::IndexReaded;
 
 pub struct CommitObject {
   index: Vec<IndexReaded>,
