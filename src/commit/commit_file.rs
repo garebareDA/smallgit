@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
+#[derive(Clone, Debug)]
 pub struct TakeObject {
   pub file: String,
   pub dir: String,
@@ -30,7 +31,7 @@ impl CommitObject {
       }
     }
     self.read_object(path);
-    
+    println!("{:?}", self.object);
     return Ok(());
   }
 
@@ -57,15 +58,17 @@ impl CommitObject {
 
   fn read_object(&mut self, paths_dirs: &Vec<String>) {
     for paths in self.index.iter() {
-      let path = &paths.clone().get_path();
-      let hex = &paths.clone().get_hex();
       for paths_dir in paths_dirs.iter() {
+        let path = &paths.clone().get_path();
+        let hex = &paths.clone().get_hex();
         let mut path_dir = paths_dir.to_string();
         path_dir.remove(0);
+
         let paths_dir_split: Vec<&str> = path_dir.split("/").collect();
         let path_split: Vec<&str> = path.split("/").collect();
         let dir_len = paths_dir_split.len() - 1;
         let path_len = path_split.len() - 2;
+
         if path_len == 0 {
           let take_object = TakeObject {
             file: path.to_string(),
@@ -75,23 +78,33 @@ impl CommitObject {
           self.object.push(take_object);
           break;
         }
-        for (index, dir) in paths_dir_split.iter().enumerate() {
-          if dir == &path_split[index] && (dir_len == path_len) {
-            if dir_len == index {
-              let take_object = TakeObject {
-                file: path.to_string(),
-                dir: path_dir.to_string(),
-                hex: hex.to_string(),
-              };
-              self.object.push(take_object);
-            }
-            continue;
-          }
+
+        if dir_len == path_len {
+          let take_object = TakeObject {
+            file: path.to_string(),
+            dir: path_dir.to_string(),
+            hex: hex.to_string(),
+          };
+          self.object.push(take_object);
           break;
+        }
+
+        for (index, dir) in paths_dir_split.iter().enumerate() {
+          if !(dir == &path_split[index]) && !(dir_len == path_len) {
+            break
+          }
+
+          if dir_len == index {
+            let take_object = TakeObject {
+              file: path.to_string(),
+              dir: path_dir.to_string(),
+              hex: hex.to_string(),
+            };
+            self.object.push(take_object);
+          }
+          continue;
         }
       }
     }
   }
-
-
 }
