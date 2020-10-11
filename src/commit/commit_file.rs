@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct IndexReaded {
   path: String,
   hex: String,
@@ -34,7 +34,7 @@ impl CommitObject {
     Self { index: Vec::new() }
   }
 
-  pub fn commit_file(&mut self, path:&Vec<String>) -> Result<(), String> {
+  pub fn commit_file(&mut self, path: &Vec<String>) -> Result<(), String> {
     match self.read_index() {
       Ok(()) => {}
       Err(s) => {
@@ -43,7 +43,6 @@ impl CommitObject {
     }
 
     self.create_tree(path);
-    println!("{:?}", self.index);
 
     return Ok(());
   }
@@ -69,8 +68,33 @@ impl CommitObject {
     return Ok(());
   }
 
-  fn create_tree(&self, path: &Vec<String>) {
+  fn create_tree(&self, paths_dirs: &Vec<String>) {
     let objects_path = Path::new("./.smallgit/objects");
-    
+    for paths in self.index.iter() {
+      let path = paths.clone().get_path();
+      let hex = paths.clone().get_hex();
+      for paths_dir in paths_dirs.iter() {
+        let mut path_dir = paths_dir.to_string();
+        path_dir.remove(0);
+        let paths_dir_split: Vec<&str> = path_dir.split("/").collect();
+        let path_split: Vec<&str> = path.split("/").collect();
+        let dir_len = paths_dir_split.len() - 1;
+        let path_len = path_split.len() - 2;
+        if path_len == 0 {
+          println!("{} {} {}", path, "/", hex);
+          break;
+        }
+        for (index, dir) in paths_dir_split.iter().enumerate() {
+          if dir == &path_split[index] && (dir_len == path_len) {
+            if dir_len == index {
+              println!("{} {} {}", path, path_dir, hex);
+            }
+            continue;
+          } else {
+            break;
+          }
+        }
+      }
+    }
   }
 }
