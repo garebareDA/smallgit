@@ -31,7 +31,7 @@ impl CommitObject {
       }
     }
     self.read_object(path);
-    self.create_tree(path);
+    println!("{:?}", self.object);
     return Ok(());
   }
 
@@ -108,19 +108,10 @@ impl CommitObject {
     }
   }
 
-  fn create_tree(&self, paths: &Vec<String>) {
-    let mut paths = paths.clone();
-    paths.insert(0, "/".to_string());
-    for path in paths.iter() {
-      let mut path = path.to_string();
-      if path != "/".to_string() {
-        path.remove(0);
-      }
-      for object in self.object.iter() {
-        if object.dir != path {
-          continue;
-        }
-      }
-    }
+  fn create_tree(&self) {
+    //使うパスをすべて格納
+   let mut paths_dir:Vec<&str> = Vec::new();
+
+   //パスごとに生成
   }
 }
