@@ -10,16 +10,23 @@ pub struct TakeObject {
   pub hex: String,
 }
 
+struct TreeObject {
+  path_tree:String,
+  inner_tree:String
+}
+
 pub struct CommitObject {
   index: Vec<IndexReaded>,
-  object: Vec<TakeObject>,
+  take_object: Vec<TakeObject>,
+  tree_object:Vec<TreeObject>
 }
 
 impl CommitObject {
   pub fn new() -> Self {
     Self {
       index: Vec::new(),
-      object: Vec::new(),
+      take_object: Vec::new(),
+      tree_object: Vec::new(),
     }
   }
 
@@ -31,7 +38,8 @@ impl CommitObject {
       }
     }
     self.read_object(path);
-    println!("{:?}", self.object);
+    self.create_tree();
+    println!("{:?}", self.take_object);
     return Ok(());
   }
 
@@ -75,7 +83,7 @@ impl CommitObject {
             dir: "/".to_string(),
             hex: hex.to_string(),
           };
-          self.object.push(take_object);
+          self.take_object.push(take_object);
           break;
         }
 
@@ -85,7 +93,7 @@ impl CommitObject {
             dir: path_dir.to_string(),
             hex: hex.to_string(),
           };
-          self.object.push(take_object);
+          self.take_object.push(take_object);
           break;
         }
 
@@ -100,7 +108,7 @@ impl CommitObject {
               dir: path_dir.to_string(),
               hex: hex.to_string(),
             };
-            self.object.push(take_object);
+            self.take_object.push(take_object);
           }
           continue;
         }
@@ -110,8 +118,12 @@ impl CommitObject {
 
   fn create_tree(&self) {
     //使うパスをすべて格納
-   let mut paths_dir:Vec<&str> = Vec::new();
-
-   //パスごとに生成
+    let mut paths_dir: Vec<&str> = Vec::new();
+    for path in self.take_object.iter() {
+      paths_dir.push(&path.dir);
+    }
+    paths_dir.sort();
+    paths_dir.dedup();
+    println!("{:?}", paths_dir);
   }
 }
