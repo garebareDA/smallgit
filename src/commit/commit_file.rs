@@ -10,15 +10,17 @@ pub struct TakeObject {
   pub hex: String,
 }
 
+#[derive(Clone, Debug)]
 struct TreeObject {
-  path_tree:String,
-  inner_tree:String
+  pub path_tree: String,
+  pub inner: String,
+  pub hex: String,
 }
 
 pub struct CommitObject {
   index: Vec<IndexReaded>,
   take_object: Vec<TakeObject>,
-  tree_object:Vec<TreeObject>
+  tree_object: Vec<TreeObject>,
 }
 
 impl CommitObject {
@@ -39,7 +41,6 @@ impl CommitObject {
     }
     self.read_object(path);
     self.create_tree();
-    println!("{:?}", self.take_object);
     return Ok(());
   }
 
@@ -116,7 +117,7 @@ impl CommitObject {
     }
   }
 
-  fn create_tree(&self) {
+  fn create_tree(&mut self) {
     //使うパスをすべて格納
     let mut paths_dir: Vec<&str> = Vec::new();
     for path in self.take_object.iter() {
@@ -124,6 +125,32 @@ impl CommitObject {
     }
     paths_dir.sort();
     paths_dir.dedup();
-    println!("{:?}", paths_dir);
+
+    for paths in paths_dir.iter() {
+      let tree_object = TreeObject {
+        path_tree: paths.to_string(),
+        inner: "".to_string(),
+        hex: "".to_string(),
+      };
+      self.tree_object.push(tree_object);
+    }
+
+    for object in self.take_object.iter() {
+      let dir = &object.dir;
+      let file = &object.file;
+      let hex = &object.hex;
+
+      for index in 0..paths_dir.len() {
+        let paths_tree = &self.tree_object[index].path_tree;
+        if paths_tree == dir {
+          let inner = &self.tree_object[index].inner;
+          let file :Vec<&str> = file.split("/").collect();
+          let file_name = file[file.len() - 1];
+          self.tree_object[index].inner = format!("{} brob {} {}\n", inner, file_name ,hex);
+        }
+      }
+    }
+
+    println!("{:?}", self.tree_object);
   }
 }
