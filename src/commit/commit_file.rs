@@ -3,6 +3,7 @@ use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
+use regex::Regex;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
@@ -44,7 +45,24 @@ impl CommitObject {
       }
     }
     self.read_object(path);
-    self.create_tree();
+    match self.create_tree() {
+      Ok(()) => {}
+      Err(e) => {
+        return Err(e);
+      }
+    }
+    match self.create_tree_file() {
+      Ok(()) => {}
+      Err(e) => return Err(e),
+    }
+    match self.create_commit_file() {
+      Ok(()) => {}
+      Err(e) => return Err(e),
+    }
+    match self.clear_index() {
+      Ok(()) => {}
+      Err(e) => return Err(e),
+    }
     return Ok(());
   }
 
@@ -92,16 +110,14 @@ impl CommitObject {
         }
 
         for (index, dir) in paths_dir_split.iter().enumerate() {
-          if !(dir == &path_split[index]) && !(dir_len == path_len) {
-            break;
-          }
-          if dir_len == index {
+          if dir == &path_split[index] && dir_len == path_len && dir_len == index {
             let take_object = TakeObject {
               file: path.to_string(),
               dir: path_dir.to_string(),
               hex: hex.to_string(),
             };
             self.take_object.push(take_object);
+            break;
           }
           continue;
         }
@@ -111,6 +127,8 @@ impl CommitObject {
 
   fn create_tree(&mut self) -> Result<(), String> {
     //使うパスをすべて格納
+    //先頭にマッチできるようになる
+    //スプリットして要素数が一つの場合ルートに付属
     let mut paths_dir: Vec<&str> = Vec::new();
     for path in self.take_object.iter() {
       paths_dir.push(&path.dir);
@@ -130,6 +148,7 @@ impl CommitObject {
       let dir = &object.dir;
       let file = &object.file;
       let hex = &object.hex;
+
       for index in 0..self.tree_object.len() {
         let paths_tree = &self.tree_object[index].path_tree;
         if paths_tree == dir {
@@ -151,7 +170,128 @@ impl CommitObject {
       self.tree_object[index].hex = hex;
     }
 
-    println!("{:?}", self.tree_object);
+    for index in (0..self.tree_object.len()).rev() {
+      let path = self.tree_object[index].path_tree.to_string();
+      for inner_index in 0..self.tree_object.len() {
+        let tree_path = self.tree_object[inner_index].path_tree.to_string();
+        let tree_path_split: Vec<&str> = tree_path.split("/").collect();
+        if path == tree_path {
+          continue;
+        }
+
+        if path == "/" {
+          if tree_path_split.len() == 2 {
+            self.change_tree_object(index, inner_index, &tree_path);
+          }
+          continue;
+        }
+
+        let reg = Regex::new(&format!(r"^{}", path)).unwrap();
+        match reg.captures(&tree_path) {
+          Some(_) => {}
+          None => {
+            continue;
+          }
+        }
+
+        self.change_tree_object(index, inner_index, &tree_path);
+      }
+    }
     return Ok(());
+  }
+
+  fn create_tree_file(&self) -> Result<(), String> {
+    let objects_path = "./.smallgit/objects";
+    if !Path::new(objects_path).exists() {
+      return Err("objects dir is not found".to_string());
+    }
+    for tree in self.tree_object.iter() {
+      let mut e = ZlibEncoder::new(Vec::new(), Compression::default());
+      e.write_all(tree.inner.as_bytes()).unwrap();
+      match e.finish() {
+        Ok(byte) => {
+          let objects_path_format = format!("{}/{}", objects_path, tree.hex);
+          let mut file = File::create(objects_path_format).unwrap();
+          file.write_all(&byte).unwrap();
+        }
+        Err(_) => return Err("zlib encode error".to_string()),
+      }
+    }
+    return Ok(());
+  }
+
+  fn create_commit_file(&self) -> Result<(), String> {
+    let objects_path = "./.smallgit/objects";
+    if !Path::new(objects_path).exists() {
+      return Err("objects dir is not found".to_string());
+    }
+    for tree in self.tree_object.iter() {
+      if tree.path_tree == "/" {
+        let inner = format!("tree {}\n", tree.hex);
+        let commit = format!("commit {}\0{}", inner.as_bytes().len(), inner);
+        let mut hasher = Sha1::new();
+        hasher.input_str(&commit);
+        let hex = hasher.result_str();
+        let mut e = ZlibEncoder::new(Vec::new(), Compression::default());
+        e.write_all(commit.as_bytes()).unwrap();
+        match e.finish() {
+          Ok(byte) => {
+            let objects_path_format = format!("{}/{}", objects_path, hex);
+            let mut file = File::create(objects_path_format).unwrap();
+            file.write_all(&byte).unwrap();
+            match self.wirite_ref_main(&hex) {
+              Ok(_) => {}
+              Err(e) => {
+                return Err(e);
+              }
+            }
+          }
+          Err(_) => return Err("zlib encode error".to_string()),
+        }
+        break;
+      }
+    }
+    return Ok(());
+  }
+
+  fn wirite_ref_main(&self, hex: &str) -> Result<(), String> {
+    let main = "./.smallgit/refs/main";
+    if !Path::new(main).exists() {
+      return Err("objects dir is not found".to_string());
+    }
+    let mut file = File::create(main).unwrap();
+    match file.write_all(hex.as_bytes()) {
+      Ok(_) => {}
+      Err(_) => {
+        return Err("main brach can't write".to_string());
+      }
+    }
+    return Ok(());
+  }
+
+  fn clear_index(&self) -> Result<(), String> {
+    let index = "./.smallgit/index";
+    if !Path::new(index).exists() {
+      return Err("objects dir is not found".to_string());
+    }
+    File::create(index).unwrap();
+    return Ok(());
+  }
+
+  fn change_tree_object(&mut self, index: usize, inner_index: usize, tree_path: &str) {
+    let tree_path_split: Vec<&str> = tree_path.split("/").collect();
+    let hex = &self.tree_object[inner_index].hex;
+    let inner = &self.tree_object[index].inner;
+    let format_inner = format!(
+      "{}tree {} {}\n",
+      inner,
+      tree_path_split[tree_path_split.len() - 1],
+      hex
+    );
+    let mut hasher = Sha1::new();
+    hasher.input_str(&format_inner);
+    let hex = hasher.result_str();
+    self.tree_object[index].inner = format_inner;
+    self.tree_object[index].hex = hex;
   }
 }
