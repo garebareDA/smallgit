@@ -1,7 +1,9 @@
 use smallgit::add;
 use smallgit::common;
 use smallgit::init;
+use smallgit::commit;
 use std::env;
+use std::path::Path;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -14,9 +16,15 @@ fn main() {
     }
 
     if args[1] == "add" {
+        if !Path::new("./.smallgit").exists() {
+            eprintln!("not found .smallgit run smallgit init");
+            return;
+        }
+
         if args.len() != 3 {
             return;
         }
+
         let path = &args[2];
         let mut paths = common::serch_dir::SerchDir::new(path);
         paths.serch_dir().unwrap();
@@ -35,5 +43,12 @@ fn main() {
                 return;
             }
         }
+    }
+
+    if args[1] == "commit" {
+       let mut commit = commit::commit_file::CommitObject::new();
+       let mut paths = common::serch_dir::SerchDir::new("./");
+        paths.serch_dir().unwrap();
+       commit.commit_file(&paths.get_paths_dir());
     }
 }
