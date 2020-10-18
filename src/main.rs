@@ -49,6 +49,12 @@ fn main() {
        let mut commit = commit::commit_file::CommitObject::new();
        let mut paths = common::serch_dir::SerchDir::new("./");
         paths.serch_dir().unwrap();
-       commit.commit_file(&paths.get_paths_dir());
+       match commit.commit_file(&paths.get_paths_dir()) {
+           Ok(_) => {},
+           Err(s) => {
+               eprintln!("{}",s);
+               return
+           }
+       }
     }
 }
