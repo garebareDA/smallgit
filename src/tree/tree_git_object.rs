@@ -1,6 +1,7 @@
 use std::fs;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Read};
+use std::path::Path;
 
 use super::super::common::zlib;
 
@@ -18,9 +19,14 @@ struct Blob {
 
 pub fn commit_tree_object() -> Result<(), String> {
   match refs_get_main() {
-    Ok(main_ref) => {
-      commit_get_tree(&main_ref);
-    }
+    Ok(main_ref) => match commit_get_tree(&main_ref) {
+      Ok(hex) => {
+        println!("{}", hex)
+      }
+      Err(e) => {
+        return Err(e);
+      }
+    },
     Err(_) => {
       return Err("main branch is abnormal".to_string());
     }
@@ -42,17 +48,21 @@ fn refs_get_main() -> Result<String, String> {
   }
 }
 
-fn commit_get_tree(hash: &str) {
-  let commit_tree_path = format!("./.smallgit/objects/{}", hash);
-  let main_commit = fs::read_to_string(&commit_tree_path);
-  match main_commit {
-    Ok(commit_zlib) => {
-      let decode = zlib::zlib_dencoder(&commit_zlib);
+// commit オブジェクトの取得 中のtreeから遡る
+fn commit_get_tree(hash: &str) -> Result<String, String> {
+  let commit_tree_path = &format!("./.smallgit/objects/{}", hash);
+  let file = File::open(commit_tree_path);
+  let mut buffer = Vec::new();
+  match file {
+    Ok(mut file) => {
+      let _ = file.read_to_end(&mut buffer).unwrap();
+      let decoded = zlib::zlib_dencoder(&buffer);
+      let decoded_split:Vec<&str> = decoded.split("\0").collect();
+      let tree_split:Vec<&str> = decoded_split[1].split(" ").collect();
+      return Ok(tree_split[1].to_string());
     }
-
     Err(_) => {
-
+      return Err("commit objects not found".to_string());
     }
   }
 }
-
