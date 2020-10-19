@@ -2,10 +2,12 @@ use smallgit::add;
 use smallgit::common;
 use smallgit::init;
 use smallgit::commit;
+use smallgit::tree;
 use std::env;
 use std::path::Path;
 
 fn main() {
+    tree::tree_git_object::commit_tree_object();
     let args: Vec<String> = env::args().collect();
     if args[1] == "init" {
         match init::init_create::create_init_file() {
