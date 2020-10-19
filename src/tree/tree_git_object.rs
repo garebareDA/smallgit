@@ -1,7 +1,6 @@
 use std::fs;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
-use std::path::Path;
+use std::io:: Read;
 
 use super::super::common::zlib;
 
@@ -18,8 +17,8 @@ struct Blob {
 }
 
 pub fn commit_tree_object() -> Result<(), String> {
-  match refs_get_main() {
-    Ok(main_ref) => match commit_get_tree(&main_ref) {
+  match get_refs_main() {
+    Ok(main_ref) => match get_commit_object(&main_ref) {
       Ok(hex) => {
         println!("{}", hex)
       }
@@ -35,7 +34,7 @@ pub fn commit_tree_object() -> Result<(), String> {
   return Ok(());
 }
 
-fn refs_get_main() -> Result<String, String> {
+fn get_refs_main() -> Result<String, String> {
   let main_branch_paht = "./.smallgit/refs/main";
   let main_commit = fs::read_to_string(&main_branch_paht);
   match main_commit {
@@ -49,7 +48,7 @@ fn refs_get_main() -> Result<String, String> {
 }
 
 // commit オブジェクトの取得 中のtreeから遡る
-fn commit_get_tree(hash: &str) -> Result<String, String> {
+fn get_commit_object(hash: &str) -> Result<String, String> {
   let commit_tree_path = &format!("./.smallgit/objects/{}", hash);
   let file = File::open(commit_tree_path);
   let mut buffer = Vec::new();
