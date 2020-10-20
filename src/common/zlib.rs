@@ -5,7 +5,6 @@ use std::io:: {Write, Read};
 
 
 pub fn zlib_dencoder(decode: &[u8]) -> String {
-  println!("{:?}", decode);
   let mut z = ZlibDecoder::new(decode);
   let mut s = String::new();
   z.read_to_string(&mut s).unwrap();

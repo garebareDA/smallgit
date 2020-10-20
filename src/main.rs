@@ -7,6 +7,15 @@ use std::env;
 use std::path::Path;
 
 fn main() {
+    let mut tree = tree::tree_git_object::Commit::new();
+    match tree.tree_main() {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("{}", e);
+        }
+    }
+    println!("{:?}", tree);
+    return;
     let args: Vec<String> = env::args().collect();
     if args[1] == "init" {
         match init::init_create::create_init_file() {

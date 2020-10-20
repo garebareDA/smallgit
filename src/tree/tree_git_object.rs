@@ -4,21 +4,44 @@ use std::io::Read;
 
 use super::super::common::zlib;
 
-struct Tree {
-  name: String,
-  hash: String,
-  blob: Vec<Blob>,
-  tree: Vec<Tree>,
+#[derive(Clone, Debug)]
+pub struct Tree {
+  pub name: String,
+  pub hash: String,
+  pub blob: Vec<Blob>,
+  pub tree: Vec<Tree>,
 }
 
-struct Blob {
-  name: String,
-  hash: String,
+#[derive(Clone, Debug)]
+pub struct Blob {
+  pub name: String,
+  pub hash: String,
 }
 
-struct Commit {
-  hash: String,
-  tree: Tree,
+#[derive(Clone, Debug)]
+pub struct Commit {
+  pub hash: String,
+  pub tree: Tree,
+}
+
+impl Tree {
+  pub fn new(name: &str, hash: &str) -> Self {
+    Self {
+      name: name.to_string(),
+      hash: hash.to_string(),
+      blob: Vec::new(),
+      tree: Vec::new(),
+    }
+  }
+}
+
+impl Blob {
+  pub fn new(name: &str, hash: &str) -> Self {
+    Self {
+      name: name.to_string(),
+      hash: hash.to_string(),
+    }
+  }
 }
 
 impl Commit {
@@ -34,19 +57,7 @@ impl Commit {
     }
   }
 
-  pub fn get_tree_main(&mut self) -> Result<(), String>{
-    match self.commit_tree_object() {
-      Ok(_) => {},
-      Err(e) => {
-        return Err(e);
-      }
-    }
-
-    
-    return Ok(());
-  }
-
-  pub fn commit_tree_object(&mut self) -> Result<(), String> {
+  pub fn tree_main(&mut self) -> Result<(), String> {
     match self.get_refs_main() {
       Ok(main_ref) => {
         self.hash = main_ref;
@@ -58,9 +69,17 @@ impl Commit {
 
     match self.get_commit_object(&self.hash) {
       Ok(tree_hash) => {
+        self.tree.name = "/".to_string();
         self.tree.hash = tree_hash;
       }
       Err(e) => return Err(e),
+    }
+
+    match self.tree_go_back() {
+      Ok(_) => {}
+      Err(e) => {
+        return Err(e);
+      }
     }
     return Ok(());
   }
@@ -72,7 +91,7 @@ impl Commit {
       Ok(main_ref) => {
         return Ok(main_ref);
       }
-      Err(_) => {
+      Err(e) => {
         return Err("main branch is abnormal".to_string());
       }
     }
