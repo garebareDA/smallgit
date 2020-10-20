@@ -91,7 +91,7 @@ impl Commit {
       Ok(main_ref) => {
         return Ok(main_ref);
       }
-      Err(e) => {
+      Err(_) => {
         return Err("main branch is abnormal".to_string());
       }
     }
@@ -108,7 +108,9 @@ impl Commit {
         let decoded = zlib::zlib_dencoder(&buffer);
         let decoded_split: Vec<&str> = decoded.split("\0").collect();
         let tree_split: Vec<&str> = decoded_split[1].split(" ").collect();
-        return Ok(tree_split[1].to_string());
+        let mut tree_hash = tree_split[1].to_string();
+        tree_hash.remove(tree_hash.len() - 1);
+        return Ok(tree_hash);
       }
       Err(_) => {
         return Err("commit objects not found".to_string());

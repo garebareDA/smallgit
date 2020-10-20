@@ -155,7 +155,7 @@ impl CommitObject {
           let inner = &self.tree_object[index].inner;
           let file: Vec<&str> = file.split("/").collect();
           let file_name = file[file.len() - 1];
-          self.tree_object[index].inner = format!("{}brob {} {}\n", inner, file_name, hex);
+          self.tree_object[index].inner = format!("{}blob {} {}\n", inner, file_name, hex);
         }
       }
     }

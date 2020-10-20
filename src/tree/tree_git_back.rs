@@ -37,10 +37,11 @@ impl tree_git_object::Commit {
           let line_split: Vec<&str> = line.split(" ").collect();
           match line_split[0] {
             "blob" => {
-              blob_vec.push(tree_git_object::Blob::new(line_split[2], line_split[1]));
+              let blob = tree_git_object::Blob::new(line_split[1],line_split[2]);
+              blob_vec.push(blob);
             }
             "tree" => {
-              let mut tree = tree_git_object::Tree::new(line_split[2], line_split[1]);
+              let mut tree = tree_git_object::Tree::new(line_split[1], line_split[2]);
               match self.tree_file_judge(line_split[2]) {
                 Ok((blob, trees)) => {
                   tree.blob = blob;
@@ -58,8 +59,7 @@ impl tree_git_object::Commit {
           }
         }
       }
-      Err(e) => {
-        println!("{}", e);
+      Err(_) => {
         return Err("git object not found".to_string());
       }
     }
