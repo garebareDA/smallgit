@@ -7,13 +7,6 @@ use std::env;
 use std::path::Path;
 
 fn main() {
-    match tree::tree_git_object::commit_tree_object() {
-        Ok(_) => {}
-        Err(e) => {
-            eprintln!("{}", e)
-        }
-    }
-    return;
     let args: Vec<String> = env::args().collect();
     if args[1] == "init" {
         match init::init_create::create_init_file() {
