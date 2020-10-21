@@ -28,7 +28,7 @@ mod test {
   fn serch() {
     match init::init_create::create_init_file() {
       Ok(_) => {}
-      Err(e) => panic!(e),
+      Err(_) => {},
     }
 
     let mut paths = common::serch_dir::SerchDir::new("./");
@@ -48,7 +48,7 @@ mod test {
   fn git_add() {
     match init::init_create::create_init_file() {
       Ok(_) => {}
-      Err(e) => panic!(e),
+      Err(_) => {},
     }
 
     match add_files::create_objects() {
@@ -96,14 +96,12 @@ mod test {
   fn git_tree() {
     match init::init_create::create_init_file() {
       Ok(_) => {}
-      Err(e) => panic!(e),
+      Err(_) => {},
     }
 
     match add_files::create_objects() {
       Ok(()) => {}
-      Err(s) => {
-        panic!(s);
-      }
+      Err(_) => {}
     }
 
     let mut commit = commit::commit_file::CommitObject::new();
@@ -111,9 +109,7 @@ mod test {
     paths.serch_dir().unwrap();
     match commit.commit_file(&paths.get_paths_dir()) {
       Ok(_) => {}
-      Err(s) => {
-        panic!(s);
-      }
+      Err(_) => {}
     }
 
     let mut tree = tree::tree_git_object::Commit::new();

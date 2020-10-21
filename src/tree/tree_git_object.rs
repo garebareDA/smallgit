@@ -57,10 +57,14 @@ impl Commit {
     }
   }
 
-  pub fn tree_main(&mut self) -> Result<(), String> {
+  pub fn tree_main(&mut self) -> Result<bool, String> {
     match self.get_refs_main() {
       Ok(main_ref) => {
-        self.hash = main_ref;
+        if main_ref != "" {
+          self.hash = main_ref;
+        }else {
+          return Ok(false);
+        }
       }
       Err(_) => {
         return Err("main branch is abnormal".to_string());
@@ -81,7 +85,7 @@ impl Commit {
         return Err(e);
       }
     }
-    return Ok(());
+    return Ok(true);
   }
 
   fn get_refs_main(&self) -> Result<String, String> {
@@ -104,7 +108,12 @@ impl Commit {
     let mut buffer = Vec::new();
     match file {
       Ok(mut file) => {
-        let _ = file.read_to_end(&mut buffer).unwrap();
+        match file.read_to_end(&mut buffer) {
+          Ok(_) => {},
+          Err(_) => {
+            return Err(format!("not found git objects {}", hash));
+          }
+        }
         let decoded = zlib::zlib_dencoder(&buffer);
         let decoded_split: Vec<&str> = decoded.split("\0").collect();
         let tree_split: Vec<&str> = decoded_split[1].split(" ").collect();
