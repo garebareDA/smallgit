@@ -19,9 +19,6 @@ impl tree_git_object::Commit {
 
   fn check_tree(&self, tree:&tree_git_object::Tree, path:&Vec<&str>, size:usize) -> Result<String, String>{
     for inner_tree in tree.tree.iter() {
-      println!("tree name {}", inner_tree.name);
-      println!("path {}", path[size]);
-      println!("size {}", size);
       if &inner_tree.name == path[size] {
         match self.check_tree(inner_tree, path, size + 1) {
           Ok(hash) => {
@@ -36,7 +33,6 @@ impl tree_git_object::Commit {
     }
 
     for blob in tree.blob.iter() {
-      println!("{:?}",blob);
       if &blob.name == path[size] {
         return Ok(blob.hash.to_string());
       }
