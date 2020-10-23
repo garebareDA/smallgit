@@ -1,4 +1,5 @@
 use super::super::common::serch_dir::SerchDir;
+use super::super::tree;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use flate2::write::ZlibEncoder;
@@ -22,6 +23,15 @@ pub fn write_index(dir: SerchDir) -> Result<(), String> {
     let mut hasher = Sha1::new();
     hasher.input_str(&format_content);
     let hex = hasher.result_str();
+
+    let mut tree = tree::tree_git_object::Commit::new();
+    match tree.tree_main() {
+      Ok(_) => {}
+      Err(e) => {
+        return Err(e);
+      }
+    }
+    tree.check(path, &hex);
 
     index_file
       .write(&format!("{} {}\n", path, hex).as_bytes())
