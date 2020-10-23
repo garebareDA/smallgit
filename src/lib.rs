@@ -106,9 +106,7 @@ mod test {
     }
 
     let mut commit = commit::commit_file::CommitObject::new();
-    let mut paths = common::serch_dir::SerchDir::new("./");
-    paths.serch_dir().unwrap();
-    match commit.commit_file(&paths.get_paths_dir()) {
+    match commit.commit_file() {
       Ok(_) => {}
       Err(s) => {
         panic!(s);
@@ -143,9 +141,7 @@ mod test {
     }
 
     let mut commit = commit::commit_file::CommitObject::new();
-    let mut paths = common::serch_dir::SerchDir::new("./");
-    paths.serch_dir().unwrap();
-    match commit.commit_file(&paths.get_paths_dir()) {
+    match commit.commit_file() {
       Ok(_) => {}
       Err(_) => {}
     }

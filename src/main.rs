@@ -16,7 +16,6 @@ fn main() {
             Ok(_) => println!("init complete"),
             Err(e) => eprintln!("{}", e),
         }
-        
         return;
     }
 
@@ -54,15 +53,7 @@ fn main() {
 
     if args[1] == "commit" {
        let mut commit = commit::commit_file::CommitObject::new();
-       let mut paths = common::serch_dir::SerchDir::new("./");
-        paths.serch_dir().unwrap();
-       match commit.commit_file(&paths.get_paths_dir()) {
-           Ok(_) => {},
-           Err(s) => {
-               eprintln!("{}",s);
-               return
-           }
-       }
+       commit.commit_file();
        return;
     }
 
