@@ -6,7 +6,7 @@ pub mod tree;
 
 #[cfg(test)]
 mod test {
-  use super::add::add_files;
+  use super::add;
   use super::commit;
   use super::common;
   use super::init;
@@ -28,17 +28,25 @@ mod test {
   fn serch() {
     match init::init_create::create_init_file() {
       Ok(_) => {}
-      Err(_) => {},
+      Err(_) => {}
     }
 
     let mut paths = common::serch_dir::SerchDir::new("./");
     paths.serch_dir().unwrap();
-    match add_files::write_index(paths) {
+    match add::add_files::write_index(paths) {
       Ok(()) => {}
       Err(s) => {
         panic!(s);
       }
     }
+
+    match add::add_files::create_objects() {
+      Ok(()) => {}
+      Err(s) => {
+        panic!(s);
+      }
+    }
+
     fs::remove_dir_all("./.smallgit")
       .ok()
       .expect("remove error");
@@ -48,10 +56,20 @@ mod test {
   fn git_add() {
     match init::init_create::create_init_file() {
       Ok(_) => {}
-      Err(_) => {},
+      Err(_) => {}
     }
 
-    match add_files::create_objects() {
+    let mut paths = common::serch_dir::SerchDir::new("./");
+    paths.serch_dir().unwrap();
+    match add::add_files::write_index(paths) {
+      Ok(()) => {}
+      Err(s) => {
+        eprintln!("{}", s);
+        return;
+      }
+    }
+
+    match add::add_files::create_objects() {
       Ok(()) => {}
       Err(s) => {
         panic!(s);
@@ -70,7 +88,17 @@ mod test {
       Err(e) => panic!(e),
     }
 
-    match add_files::create_objects() {
+    let mut paths = common::serch_dir::SerchDir::new("./");
+    paths.serch_dir().unwrap();
+    match add::add_files::write_index(paths) {
+      Ok(()) => {}
+      Err(s) => {
+        eprintln!("{}", s);
+        return;
+      }
+    }
+
+    match add::add_files::create_objects() {
       Ok(()) => {}
       Err(s) => {
         panic!(s);
@@ -96,10 +124,20 @@ mod test {
   fn git_tree() {
     match init::init_create::create_init_file() {
       Ok(_) => {}
-      Err(_) => {},
+      Err(_) => {}
     }
 
-    match add_files::create_objects() {
+    let mut paths = common::serch_dir::SerchDir::new("./");
+    paths.serch_dir().unwrap();
+    match add::add_files::write_index(paths) {
+      Ok(()) => {}
+      Err(s) => {
+        eprintln!("{}", s);
+        return;
+      }
+    }
+
+    match add::add_files::create_objects() {
       Ok(()) => {}
       Err(_) => {}
     }
@@ -121,7 +159,7 @@ mod test {
     }
 
     fs::remove_dir_all("./.smallgit")
-    .ok()
-    .expect("remove error");
+      .ok()
+      .expect("remove error");
   }
 }

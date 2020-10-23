@@ -11,7 +11,6 @@ use std::path::Path;
 
 pub fn write_index(dir: SerchDir) -> Result<(), String> {
   //indexステータスをなしでに書き込み
-  //まだ前回のコミットと比較できないため
   let index_path = Path::new("./.smallgit/index");
   if !index_path.exists() {
     return Err("index file not found".to_string());
@@ -31,11 +30,11 @@ pub fn write_index(dir: SerchDir) -> Result<(), String> {
         return Err(e);
       }
     }
-    tree.check(path, &hex);
-
-    index_file
-      .write(&format!("{} {}\n", path, hex).as_bytes())
-      .unwrap();
+    if !tree.check(path, &hex) {
+      index_file
+        .write(&format!("{} {}\n", path, hex).as_bytes())
+        .unwrap();
+    }
   }
   return Ok(());
 }

@@ -48,6 +48,8 @@ fn main() {
                 return;
             }
         }
+
+        return;
     }
 
     if args[1] == "commit" {
@@ -61,5 +63,8 @@ fn main() {
                return
            }
        }
+       return;
     }
+
+    println!("command not found");
 }
