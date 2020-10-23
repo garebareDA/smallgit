@@ -7,7 +7,6 @@ use std::path::Path;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-
     if args.len() == 1 {
         return;
     }
@@ -17,6 +16,7 @@ fn main() {
             Ok(_) => println!("init complete"),
             Err(e) => eprintln!("{}", e),
         }
+        
         return;
     }
 

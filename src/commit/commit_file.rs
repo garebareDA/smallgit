@@ -1,3 +1,4 @@
+use super::super::tree;
 use super::index_readed::IndexReaded;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
@@ -205,7 +206,15 @@ impl CommitObject {
     if !Path::new(objects_path).exists() {
       return Err("objects dir is not found".to_string());
     }
+    println!("{:?}", self.tree_object);
     for tree in self.tree_object.iter() {
+      let mut commit_tree = tree::tree_git_object::Commit::new();
+      match commit_tree.tree_main() {
+        Ok(_) => {}
+        Err(e) => {
+          return Err(e);
+        }
+      }
       let mut e = ZlibEncoder::new(Vec::new(), Compression::default());
       e.write_all(tree.inner.as_bytes()).unwrap();
       match e.finish() {

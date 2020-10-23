@@ -16,6 +16,7 @@ impl tree_git_object::Commit {
       Err(s) => {
         return Err(s);
       }
+      
     }
   }
 
