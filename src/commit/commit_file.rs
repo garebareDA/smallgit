@@ -33,6 +33,14 @@ impl CommitObject {
   }
 
   pub fn commit_file(&mut self) -> Result<(), String> {
+    let mut tree = tree::tree_git_object::Commit::new();
+    match tree.tree_main() {
+      Ok(_) => {}
+      Err(e) => {
+        return Err(e);
+      }
+    }
+    self.tree = tree.tree;
     match self.read_index() {
       Ok(()) => {}
       Err(s) => {
@@ -40,13 +48,9 @@ impl CommitObject {
       }
     }
     self.extraction_dir();
-    let mut commit = tree::tree_git_object::Commit::new();
-    match commit.tree_main() {
-      Ok(_) => {}
-      Err(e) => {
-        return Err(e);
-      }
-    }
+    self.generate_tree_path();
+    println!("{:?}", self.tree_dir);
+    println!("{:?}", self.index);
     return Ok(());
   }
 
@@ -98,5 +102,19 @@ impl CommitObject {
       self.tree_dir.sort();
       self.tree_dir.dedup();
     }
+  }
+
+  fn generate_tree_path(&mut self) -> Result<(), String>{
+    if self.tree.name == "" {
+      self.tree.name = "/".to_string();
+    }
+    for path in self.tree_dir.iter() {
+      let path_split:Vec<&str> = path.split("/").collect();
+      if path_split.len() == 1 {
+        
+      }
+    }
+
+    return Ok(());
   }
 }
