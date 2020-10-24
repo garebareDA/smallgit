@@ -18,11 +18,9 @@ pub struct CommitObject {
 
 impl CommitObject {
   pub fn new() -> Self {
-    let mut vec: Vec<String> = Vec::new();
-    vec.push("/".to_string());
     Self {
       index: Vec::new(),
-      tree_dir: vec,
+      tree_dir: Vec::new(),
       tree: Tree {
         name: "/".to_string(),
         hash: "".to_string(),
@@ -33,14 +31,6 @@ impl CommitObject {
   }
 
   pub fn commit_file(&mut self) -> Result<(), String> {
-    let mut tree = tree::tree_git_object::Commit::new();
-    match tree.tree_main() {
-      Ok(_) => {}
-      Err(e) => {
-        return Err(e);
-      }
-    }
-    self.tree = tree.tree;
     match self.read_index() {
       Ok(()) => {}
       Err(s) => {
@@ -81,40 +71,64 @@ impl CommitObject {
       let mut index_path_split: Vec<&str> = index_path.split("/").collect();
       index_path_split.remove(0);
       index_path_split.remove(index_path_split.len() - 1);
-
       let connect = index_path_split.connect("/");
       if connect != "" {
         self.tree_dir.push(connect.clone());
-      }
-      if !index_path_split.is_empty() {
+      } else if !index_path_split.is_empty() {
         self.tree_dir.push(index_path_split[0].to_string());
       }
 
-      for path in index_path_split {
-        let re = Regex::new(&format!(r"${}{}{},{}", path, "{", path.len(), "}")).unwrap();
-        match re.captures(&connect) {
-          Some(_) => {
-            self.tree_dir.push(path.to_string());
-          }
-          None => {}
+      let mut paths = "".to_string();
+      for (index, path) in index_path_split.iter().enumerate() {
+        if index == 0 {
+          self.tree_dir.push(path.to_string());
+          paths = format!("{}", &path);
+          continue;
         }
+        paths = format!("{}/{}", &paths, &path);
+        self.tree_dir.push(paths.to_string());
       }
       self.tree_dir.sort();
       self.tree_dir.dedup();
     }
   }
 
-  fn generate_tree_path(&mut self) -> Result<(), String>{
+  fn generate_tree_path(&mut self) -> Result<(), String> {
     if self.tree.name == "" {
       self.tree.name = "/".to_string();
     }
-    for path in self.tree_dir.iter() {
-      let path_split:Vec<&str> = path.split("/").collect();
-      if path_split.len() == 1 {
-        
+    let tree = self.tree_dir(1, "/");
+    println!("{:?}", tree);
+    return Ok(());
+  }
+
+  fn tree_dir(&self, size: usize, pearent: &str) -> Vec<Tree> {
+    let mut tree_vec: Vec<Tree> = Vec::new();
+    for index in 0..self.tree_dir.len() - 1 {
+      let path_split: Vec<&str> = self.tree_dir[index].split("/").collect();
+      if path_split.len() == size {
+        let name = &self.tree_dir[index];
+        let mut tree = Tree {
+          name: name.to_string(),
+          hash: "".to_string(),
+          blob: Vec::new(),
+          tree: Vec::new(),
+        };
+        tree.tree = self.tree_dir(size + 1, name);
+        let re = Regex::new(&format!(r"^{}", pearent)).unwrap();
+        match re.captures(name) {
+          Some(_) => {
+            tree_vec.push(tree);
+          }
+
+          None => {
+            if size == 1 {
+              tree_vec.push(tree)
+            }
+          }
+        }
       }
     }
-
-    return Ok(());
+    return tree_vec;
   }
 }
