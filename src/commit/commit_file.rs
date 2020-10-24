@@ -39,8 +39,6 @@ impl CommitObject {
     }
     self.extraction_dir();
     self.generate_tree_path();
-    println!("{:?}", self.tree_dir);
-    println!("{:?}", self.index);
     return Ok(());
   }
 
@@ -53,6 +51,7 @@ impl CommitObject {
           let line = line.unwrap();
           let line_splits: Vec<&str> = line.split(" ").collect();
           let mut path_format = line_splits[0].to_string();
+          path_format.remove(0);
           path_format.remove(0);
           let readed = IndexReaded::new(&path_format, line_splits[1]);
           self.index.push(readed);
@@ -69,7 +68,6 @@ impl CommitObject {
     for index in self.index.iter() {
       let index_path = index.clone().get_path();
       let mut index_path_split: Vec<&str> = index_path.split("/").collect();
-      index_path_split.remove(0);
       index_path_split.remove(index_path_split.len() - 1);
       let connect = index_path_split.connect("/");
       if connect != "" {
@@ -98,7 +96,7 @@ impl CommitObject {
       self.tree.name = "/".to_string();
     }
     let tree = self.tree_dir(1, "/");
-    println!("{:?}", tree);
+    self.tree.tree = tree;
     return Ok(());
   }
 
@@ -131,4 +129,6 @@ impl CommitObject {
     }
     return tree_vec;
   }
+
+  
 }
