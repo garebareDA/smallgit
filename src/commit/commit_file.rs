@@ -1,5 +1,5 @@
 use super::super::tree;
-use super::super::tree::tree_git_object::Tree;
+use super::super::tree::tree_git_object::{Tree, Blob};
 use super::index_readed::IndexReaded;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
@@ -38,7 +38,8 @@ impl CommitObject {
       }
     }
     self.extraction_dir();
-    self.generate_tree_path();
+    self.generate_tree();
+    println!("{:?}", self.tree);
     return Ok(());
   }
 
@@ -66,7 +67,7 @@ impl CommitObject {
 
   fn extraction_dir(&mut self) {
     for index in self.index.iter() {
-      let index_path = index.clone().get_path();
+      let index_path = &index.path;
       let mut index_path_split: Vec<&str> = index_path.split("/").collect();
       index_path_split.remove(index_path_split.len() - 1);
       let connect = index_path_split.connect("/");
@@ -91,7 +92,7 @@ impl CommitObject {
     }
   }
 
-  fn generate_tree_path(&mut self) -> Result<(), String> {
+  fn generate_tree(&mut self) -> Result<(), String> {
     if self.tree.name == "" {
       self.tree.name = "/".to_string();
     }
@@ -112,6 +113,7 @@ impl CommitObject {
           blob: Vec::new(),
           tree: Vec::new(),
         };
+        self.insert_blob(&mut tree);
         tree.tree = self.tree_dir(size + 1, name);
         let re = Regex::new(&format!(r"^{}", pearent)).unwrap();
         match re.captures(name) {
@@ -130,5 +132,26 @@ impl CommitObject {
     return tree_vec;
   }
 
-  
+  fn insert_blob(&self, tree:&mut Tree) {
+    let mut blob_vec:Vec<Blob> = Vec::new();
+    for index in self.index.iter() {
+      let dir = &tree.name;
+      let file = &index.path;
+      let hex = &index.hex;
+      let file_split: Vec<&str>= file.split("/").collect();
+      let file_name = file_split[file_split.len() - 1];
+      let re = Regex::new(&format!(r"^{}/{}", dir, file_name)).unwrap();
+      match re.captures(file) {
+        Some(_) => {
+          let blob = Blob {
+            name:file_name.to_string(),
+            hash:hex.to_string(),
+          };
+          blob_vec.push(blob);
+        },
+        None => {}
+      }
+    }
+    tree.blob = blob_vec;
+  }
 }
