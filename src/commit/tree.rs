@@ -31,7 +31,7 @@ impl commit_file::CommitObject {
     }
   }
 
-  pub fn generate_tree(&mut self) {
+  pub fn generate_tree(&mut self) -> Tree {
     if self.tree.name == "" {
       self.tree.name = "/".to_string();
     }
@@ -39,7 +39,7 @@ impl commit_file::CommitObject {
     let mut tree_root = Tree::new("/", "");
     self.insert_blob(&mut tree_root);
     tree_root.tree = tree;
-    self.tree = tree_root;
+    return tree_root;
   }
 
   fn tree_dir(&self, size: usize, pearent: &str) -> Vec<Tree> {
@@ -93,5 +93,11 @@ impl commit_file::CommitObject {
       }
     }
     tree.blob = blob_vec;
+  }
+
+  pub fn comparsion_tree(&self, root_tree: &mut Tree, main_tree:&mut Tree) {
+    for index in 0..root_tree.tree.len() - 1{
+      self.comparsion_tree(&mut root_tree.tree[index], &mut main_tree.tree[index]);
+    }
   }
 }

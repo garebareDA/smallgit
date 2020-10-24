@@ -34,16 +34,14 @@ impl CommitObject {
       }
     }
     self.extraction_dir();
-    self.generate_tree();
-    println!("{:?}", self.tree);
-    let mut tree = tree::tree_git_object::Commit::new();
-    match tree.tree_main() {
+    let tree_root = self.generate_tree();
+    let mut tree_main = tree::tree_git_object::Commit::new();
+    match tree_main.tree_main() {
       Ok(_) => {}
       Err(e) => {
         return Err(e);
       }
     }
-
 
     return Ok(());
   }
