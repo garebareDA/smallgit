@@ -10,6 +10,7 @@ pub struct Tree {
   pub hash: String,
   pub blob: Vec<Blob>,
   pub tree: Vec<Tree>,
+  pub is_edit:bool,
 }
 
 #[derive(Clone, Debug)]
@@ -31,6 +32,7 @@ impl Tree {
       hash: hash.to_string(),
       blob: Vec::new(),
       tree: Vec::new(),
+      is_edit:false,
     }
   }
 }
@@ -53,6 +55,7 @@ impl Commit {
         hash: String::new(),
         blob: Vec::new(),
         tree: Vec::new(),
+        is_edit:false,
       },
     }
   }

@@ -1,5 +1,5 @@
 use super::super::tree;
-use super::super::tree::tree_git_object::{Tree, Blob};
+use super::super::tree::tree_git_object::{Blob, Tree};
 use super::index_readed::IndexReaded;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
@@ -18,15 +18,11 @@ pub struct CommitObject {
 
 impl CommitObject {
   pub fn new() -> Self {
+    let tree = Tree::new("/", "");
     Self {
       index: Vec::new(),
       tree_dir: Vec::new(),
-      tree: Tree {
-        name: "/".to_string(),
-        hash: "".to_string(),
-        blob: Vec::new(),
-        tree: Vec::new(),
-      },
+      tree,
     }
   }
 
@@ -40,6 +36,13 @@ impl CommitObject {
     self.extraction_dir();
     self.generate_tree();
     println!("{:?}", self.tree);
+    let mut tree = tree::tree_git_object::Commit::new();
+    match tree.tree_main() {
+      Ok(_) => {}
+      Err(e) => {
+        return Err(e);
+      }
+    }
     return Ok(());
   }
 
@@ -92,13 +95,15 @@ impl CommitObject {
     }
   }
 
-  fn generate_tree(&mut self) -> Result<(), String> {
+  fn generate_tree(&mut self) {
     if self.tree.name == "" {
       self.tree.name = "/".to_string();
     }
     let tree = self.tree_dir(1, "/");
-    self.tree.tree = tree;
-    return Ok(());
+    let mut tree_root = Tree::new("/", "");
+    self.insert_blob(&mut tree_root);
+    tree_root.tree = tree;
+    self.tree = tree_root;
   }
 
   fn tree_dir(&self, size: usize, pearent: &str) -> Vec<Tree> {
@@ -107,12 +112,7 @@ impl CommitObject {
       let path_split: Vec<&str> = self.tree_dir[index].split("/").collect();
       if path_split.len() == size {
         let name = &self.tree_dir[index];
-        let mut tree = Tree {
-          name: name.to_string(),
-          hash: "".to_string(),
-          blob: Vec::new(),
-          tree: Vec::new(),
-        };
+        let mut tree = Tree::new(name, "");
         self.insert_blob(&mut tree);
         tree.tree = self.tree_dir(size + 1, name);
         let re = Regex::new(&format!(r"^{}", pearent)).unwrap();
@@ -132,23 +132,27 @@ impl CommitObject {
     return tree_vec;
   }
 
-  fn insert_blob(&self, tree:&mut Tree) {
-    let mut blob_vec:Vec<Blob> = Vec::new();
+  fn insert_blob(&self, tree: &mut Tree) {
+    let mut blob_vec: Vec<Blob> = Vec::new();
     for index in self.index.iter() {
       let dir = &tree.name;
       let file = &index.path;
       let hex = &index.hex;
-      let file_split: Vec<&str>= file.split("/").collect();
+      let file_split: Vec<&str> = file.split("/").collect();
       let file_name = file_split[file_split.len() - 1];
+
+      if dir == "/" && file_split.len() == 1 {
+        let blob = Blob::new(file_name, hex);
+        blob_vec.push(blob);
+        continue;
+      }
+
       let re = Regex::new(&format!(r"^{}/{}", dir, file_name)).unwrap();
       match re.captures(file) {
         Some(_) => {
-          let blob = Blob {
-            name:file_name.to_string(),
-            hash:hex.to_string(),
-          };
+          let blob = Blob::new(file_name, hex);
           blob_vec.push(blob);
-        },
+        }
         None => {}
       }
     }
