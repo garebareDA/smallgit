@@ -20,7 +20,7 @@ pub struct Blob {
 }
 
 #[derive(Clone, Debug)]
-pub struct Commit {
+pub struct CommitGet {
   pub hash: String,
   pub tree: Tree,
 }
@@ -46,7 +46,7 @@ impl Blob {
   }
 }
 
-impl Commit {
+impl CommitGet {
   pub fn new() -> Self {
     Self {
       hash: "".to_string(),
@@ -58,6 +58,10 @@ impl Commit {
         is_edit:false,
       },
     }
+  }
+
+  pub fn set_hasj(&mut self, hash: &str) {
+    self.hash = hash.to_string();
   }
 
   pub fn tree_main(&mut self) -> Result<bool, String> {
@@ -119,9 +123,9 @@ impl Commit {
         }
         let decoded = zlib::zlib_dencoder(&buffer);
         let decoded_split: Vec<&str> = decoded.split("\0").collect();
-        let tree_split: Vec<&str> = decoded_split[1].split(" ").collect();
-        let mut tree_hash = tree_split[1].to_string();
-        tree_hash.remove(tree_hash.len() - 1);
+        let tmp_split: Vec<&str> = decoded_split[0].split("\n").collect();
+        let tree_split: Vec<&str> = tmp_split[0].split(" ").collect();
+        let tree_hash = tree_split[1].to_string();
         return Ok(tree_hash);
       }
       Err(_) => {

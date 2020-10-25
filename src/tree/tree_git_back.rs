@@ -4,7 +4,7 @@ use std::io::Read;
 use super::super::common::zlib;
 use super::tree_git_object;
 
-impl tree_git_object::Commit {
+impl tree_git_object::CommitGet {
   pub fn tree_go_back(&mut self) -> Result<(), String> {
     let hash = &self.tree.hash;
     match self.tree_file_judge(hash) {
@@ -37,12 +37,12 @@ impl tree_git_object::Commit {
           let line_split: Vec<&str> = line.split(" ").collect();
           match line_split[0] {
             "blob" => {
-              let blob = tree_git_object::Blob::new(line_split[1],line_split[2]);
+              let blob = tree_git_object::Blob::new(line_split[2],line_split[1]);
               blob_vec.push(blob);
             }
             "tree" => {
-              let mut tree = tree_git_object::Tree::new(line_split[1], line_split[2]);
-              match self.tree_file_judge(line_split[2]) {
+              let mut tree = tree_git_object::Tree::new(line_split[2], line_split[1]);
+              match self.tree_file_judge(line_split[1]) {
                 Ok((blob, trees)) => {
                   tree.blob = blob;
                   tree.tree = trees;

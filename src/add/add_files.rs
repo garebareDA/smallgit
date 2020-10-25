@@ -22,7 +22,7 @@ pub fn write_index(dir: SerchDir) -> Result<(), String> {
     hasher.input_str(&format_content);
     let hex = hasher.result_str();
 
-    let mut tree = tree::tree_git_object::Commit::new();
+    let mut tree = tree::tree_git_object::CommitGet::new();
     match tree.tree_main() {
       Ok(_) => {}
       Err(e) => {
