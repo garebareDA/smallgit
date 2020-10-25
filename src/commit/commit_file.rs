@@ -34,7 +34,7 @@ impl CommitObject {
       }
     }
     self.extraction_dir();
-    let tree_root = self.generate_tree();
+    let mut tree_root = self.generate_tree();
     let mut tree_main = tree::tree_git_object::Commit::new();
     match tree_main.tree_main() {
       Ok(_) => {}
@@ -42,7 +42,8 @@ impl CommitObject {
         return Err(e);
       }
     }
-
+    self.comparsion_tree(&mut tree_root, &mut tree_main.tree);
+    self.tree = tree_main.tree;
     return Ok(());
   }
 

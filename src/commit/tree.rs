@@ -44,7 +44,7 @@ impl commit_file::CommitObject {
 
   fn tree_dir(&self, size: usize, pearent: &str) -> Vec<Tree> {
     let mut tree_vec: Vec<Tree> = Vec::new();
-    for index in 0..self.tree_dir.len() - 1 {
+    for index in 0..self.tree_dir.len() {
       let path_split: Vec<&str> = self.tree_dir[index].split("/").collect();
       if path_split.len() == size {
         let name = &self.tree_dir[index];
@@ -95,9 +95,58 @@ impl commit_file::CommitObject {
     tree.blob = blob_vec;
   }
 
-  pub fn comparsion_tree(&self, root_tree: &mut Tree, main_tree:&mut Tree) {
-    for index in 0..root_tree.tree.len() - 1{
-      self.comparsion_tree(&mut root_tree.tree[index], &mut main_tree.tree[index]);
+  pub fn comparsion_tree(&self, root_tree: &mut Tree, main_tree: &mut Tree) {
+    for blob in root_tree.blob.iter() {
+      if main_tree.blob.is_empty() {
+        main_tree.blob.push(blob.clone());
+        main_tree.is_edit = true;
+        continue;
+      }
+
+      for index in 0..main_tree.blob.len() {
+        if main_tree.blob[index].name == blob.name {
+          main_tree.blob[index] = blob.clone();
+          main_tree.is_edit = true;
+          continue;
+        }
+
+        if main_tree.blob[index].name != blob.name && index == main_tree.blob.len() - 1 {
+          main_tree.blob.push(blob.clone());
+          main_tree.is_edit = true;
+        }
+      }
+    }
+
+    for tree in root_tree.tree.iter() {
+      if main_tree.tree.is_empty() {
+        let mut push_tree = tree.clone();
+        self.change_edit(&mut push_tree);
+        main_tree.is_edit = true;
+        main_tree.tree.push(push_tree);
+      }
+
+      for index in 0..main_tree.tree.len() {
+        if main_tree.tree[index].name == tree.name {
+          self.comparsion_tree(&mut main_tree.tree[index], &mut tree.clone());
+          continue;
+        }
+
+        if main_tree.tree[index].name != tree.name && index == main_tree.tree.len() - 1 {
+          let mut push_tree = tree.clone();
+          self.change_edit(&mut push_tree);
+          main_tree.is_edit = true;
+          main_tree.tree.push(push_tree);
+          self.comparsion_tree(&mut main_tree.tree[index], &mut tree.clone());
+        }
+      }
+    }
+  }
+
+  fn change_edit(&self, tree:&mut Tree) {
+    tree.is_edit = true;
+    for index in 0..tree.tree.len() {
+      tree.tree[index].is_edit = true;
+      self.change_edit(&mut tree.tree[index]);
     }
   }
 }
