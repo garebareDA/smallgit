@@ -22,7 +22,6 @@ impl tree_git_object::CommitGet {
     let size = 0;
     let mut path_split: Vec<&str> = path.split("/").collect();
     path_split.remove(0);
-    println!("{:?}", path_split);
     match self.check_trees(tree, &path_split, size) {
       Ok(hashs) => {
         return hashs == hash;

@@ -27,7 +27,8 @@ impl commit_file::CommitObject {
         match self.tree_write(&mut tree.tree[index]) {
           Ok(hash) => {
             tree.tree[index].hash = hash.to_string();
-            inner = format!("{}tree {} {}\n", &inner, hash, tree.tree[index].name);
+            let path_split:Vec<&str> = tree.tree[index].name.split("/").collect();
+            inner = format!("{}tree {} {}\n", &inner, hash, path_split[path_split.len() - 1]);
           }
 
           Err(e) => {
