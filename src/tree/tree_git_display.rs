@@ -10,9 +10,9 @@ impl CommitGet {
 
   pub fn format_object(&self, space:&str, tree: &Tree) {
     for tree in tree.tree.iter() {
-      println!("{}-{}", space, tree.name);
+      println!("{}-{} {}", space, tree.name, tree.hash);
       for blob in tree.blob.iter() {
-        println!("  {}{}", space,blob.name);
+        println!("  {}{} {}", space,blob.name, blob.hash);
       }
       self.format_object(&format!(" {}", space), tree);
     }
