@@ -1,13 +1,8 @@
 use super::super::tree;
-use super::super::tree::tree_git_object::{Blob, Tree};
+use super::super::tree::tree_git_object::{Tree};
 use super::index_readed::IndexReaded;
-use crypto::digest::Digest;
-use crypto::sha1::Sha1;
-use flate2::write::ZlibEncoder;
-use flate2::Compression;
-use regex::Regex;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 pub struct CommitObject {
@@ -44,6 +39,12 @@ impl CommitObject {
     }
     self.comparsion_tree(&mut tree_root, &mut tree_main.tree);
     self.tree = tree_main.tree;
+    match self.create_tree_file() {
+      Ok(_) => {}
+      Err(e) => {
+        return Err(e);
+      }
+    }
     return Ok(());
   }
 
