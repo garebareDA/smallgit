@@ -3,11 +3,12 @@ use super::super::tree::tree_git_object::{Blob, Tree};
 use super::commit_file;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
+use std::fs;
 use std::fs::File;
 use std::io::Write;
 
 impl commit_file::CommitObject {
-  pub fn create_tree_file(&mut self) -> Result<String, String>{
+  pub fn create_tree_file(&mut self) -> Result<String, String> {
     let mut tree = self.tree.clone();
     match self.tree_write(&mut tree) {
       Ok(hash) => {
@@ -62,5 +63,34 @@ impl commit_file::CommitObject {
       return Ok(tree.hash.to_string());
     }
     return Err("hash missing".to_string());
+  }
+
+  pub fn create_commit_file(&self, hash: &str) -> Result<(), String> {
+    let main_branch_paht = "./.smallgit/refs/main";
+    let main_commit = fs::read_to_string(&main_branch_paht);
+    match main_commit {
+      Ok(main_ref) => {
+        let inner = format!("tree {}\nbfore {}", hash, main_ref);
+        let commit = format!("commit {}\0{}", inner.as_bytes().len(), inner);
+        let mut hasher = Sha1::new();
+        hasher.input_str(&commit);
+        let hash = hasher.result_str();
+        match common::zlib::zlib_encoder(&inner) {
+          Ok(byte) => {
+            let mut tree_file = File::create(format!("./.smallgit/objects/{}", hash)).unwrap();
+            let mut main_file = File::create("./.smallgit/refs/main").unwrap();
+            tree_file.write_all(&byte).unwrap();
+            main_file.write_all(&format!("{}", hash).as_bytes()).unwrap();
+            return Ok(());
+          }
+          Err(_) => {
+            return Err("file error".to_string());
+          }
+        }
+      }
+      Err(_) => {
+        return Err("main branch is abnormal".to_string());
+      }
+    }
   }
 }

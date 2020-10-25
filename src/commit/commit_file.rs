@@ -1,5 +1,5 @@
 use super::super::tree;
-use super::super::tree::tree_git_object::{Tree};
+use super::super::tree::tree_git_object::Tree;
 use super::index_readed::IndexReaded;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -40,7 +40,14 @@ impl CommitObject {
     self.comparsion_tree(&mut tree_root, &mut tree_main.tree);
     self.tree = tree_main.tree;
     match self.create_tree_file() {
-      Ok(_) => {}
+      Ok(hash) => match self.create_commit_file(&hash) {
+        Ok(()) => {
+          self.clear_index();
+        }
+        Err(e) => {
+          return Err(e);
+        }
+      },
       Err(e) => {
         return Err(e);
       }
@@ -68,5 +75,10 @@ impl CommitObject {
       }
     }
     return Ok(());
+  }
+
+  fn clear_index(&self) {
+    let index_path = "./.smallgit/index";
+    File::create(index_path).unwrap();
   }
 }
