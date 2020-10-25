@@ -1,8 +1,8 @@
 use super::super::common::serch_dir::SerchDir;
+use super::super::tree;
+use super::super::common;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
-use flate2::write::ZlibEncoder;
-use flate2::Compression;
 use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
@@ -10,7 +10,6 @@ use std::path::Path;
 
 pub fn write_index(dir: SerchDir) -> Result<(), String> {
   //indexステータスをなしでに書き込み
-  //まだ前回のコミットと比較できないため
   let index_path = Path::new("./.smallgit/index");
   if !index_path.exists() {
     return Err("index file not found".to_string());
@@ -23,9 +22,18 @@ pub fn write_index(dir: SerchDir) -> Result<(), String> {
     hasher.input_str(&format_content);
     let hex = hasher.result_str();
 
-    index_file
-      .write(&format!("{} {}\n", path, hex).as_bytes())
-      .unwrap();
+    let mut tree = tree::tree_git_object::Commit::new();
+    match tree.tree_main() {
+      Ok(_) => {}
+      Err(e) => {
+        return Err(e);
+      }
+    }
+    if !tree.check_blob(path, &hex) {
+      index_file
+        .write(&format!("{} {}\n", path, hex).as_bytes())
+        .unwrap();
+    }
   }
   return Ok(());
 }
@@ -50,10 +58,7 @@ pub fn create_objects() -> Result<(), String> {
 
         let content = fs::read_to_string(add_path).unwrap();
         let format_content = format!("blob {}\0{}", content.as_bytes().len(), content);
-
-        let mut e = ZlibEncoder::new(Vec::new(), Compression::default());
-        e.write_all(format_content.as_bytes()).unwrap();
-        match e.finish() {
+        match common::zlib::zlib_encoder(&format_content) {
           Ok(byte) => {
             let objects_path_format = format!("{}/{}", objects_path, line_splits[1]);
             let mut file = File::create(objects_path_format).unwrap();

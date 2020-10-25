@@ -7,6 +7,10 @@ use std::path::Path;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    if args.len() == 1 {
+        return;
+    }
+
     if args[1] == "init" {
         match init::init_create::create_init_file() {
             Ok(_) => println!("init complete"),
@@ -43,12 +47,21 @@ fn main() {
                 return;
             }
         }
+
+        return;
     }
 
     if args[1] == "commit" {
        let mut commit = commit::commit_file::CommitObject::new();
-       let mut paths = common::serch_dir::SerchDir::new("./");
-        paths.serch_dir().unwrap();
-       commit.commit_file(&paths.get_paths_dir());
+       match commit.commit_file() {
+           Ok(()) => {}
+           Err(s) => {
+               eprintln!("{}", s);
+               return;
+           }
+       }
+       return;
     }
+
+    println!("command not found");
 }
