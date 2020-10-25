@@ -1,5 +1,5 @@
 use super::super::common;
-use super::super::tree::tree_git_object::{Blob, Tree};
+use super::super::tree::tree_git_object::Tree;
 use super::commit_file;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
@@ -8,11 +8,9 @@ use std::fs::File;
 use std::io::Write;
 
 impl commit_file::CommitObject {
-  pub fn create_tree_file(&mut self) -> Result<String, String> {
-    let mut tree = self.tree.clone();
-    match self.tree_write(&mut tree) {
+  pub fn create_tree_file(&mut self, tree: &mut Tree) -> Result<String, String> {
+    match self.tree_write(tree) {
       Ok(hash) => {
-        self.tree = tree;
         return Ok(hash.to_string());
       }
 

@@ -32,9 +32,6 @@ impl commit_file::CommitObject {
   }
 
   pub fn generate_tree(&mut self) -> Tree {
-    if self.tree.name == "" {
-      self.tree.name = "/".to_string();
-    }
     let tree = self.tree_dir(1, "/");
     let mut tree_root = Tree::new("/", "");
     self.insert_blob(&mut tree_root);

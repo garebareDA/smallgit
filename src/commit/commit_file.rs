@@ -38,10 +38,10 @@ impl CommitObject {
       }
     }
     self.comparsion_tree(&mut tree_root, &mut tree_main.tree);
-    self.tree = tree_main.tree;
-    match self.create_tree_file() {
+    match self.create_tree_file(&mut tree_main.tree) {
       Ok(hash) => match self.create_commit_file(&hash) {
         Ok(()) => {
+          self.tree = tree_main.tree;
           self.clear_index();
         }
         Err(e) => {
@@ -68,6 +68,9 @@ impl CommitObject {
           path_format.remove(0);
           let readed = IndexReaded::new(&path_format, line_splits[1]);
           self.index.push(readed);
+        }
+        if self.index.is_empty() {
+          return Err("file not staged".to_string());
         }
       }
       Err(_) => {

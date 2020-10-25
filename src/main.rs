@@ -53,7 +53,13 @@ fn main() {
 
     if args[1] == "commit" {
        let mut commit = commit::commit_file::CommitObject::new();
-       commit.commit_file();
+       match commit.commit_file() {
+           Ok(()) => {}
+           Err(s) => {
+               eprintln!("{}", s);
+               return;
+           }
+       }
        return;
     }
 
