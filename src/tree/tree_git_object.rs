@@ -119,9 +119,9 @@ impl Commit {
         }
         let decoded = zlib::zlib_dencoder(&buffer);
         let decoded_split: Vec<&str> = decoded.split("\0").collect();
-        let tree_split: Vec<&str> = decoded_split[1].split(" ").collect();
-        let mut tree_hash = tree_split[1].to_string();
-        tree_hash.remove(tree_hash.len() - 1);
+        let tmp_split: Vec<&str> = decoded_split[0].split("\n").collect();
+        let tree_split: Vec<&str> = tmp_split[0].split(" ").collect();
+        let tree_hash = tree_split[1].to_string();
         return Ok(tree_hash);
       }
       Err(_) => {
