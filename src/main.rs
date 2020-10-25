@@ -1,7 +1,8 @@
 use smallgit::add;
+use smallgit::commit;
 use smallgit::common;
 use smallgit::init;
-use smallgit::commit;
+use smallgit::tree;
 use std::env;
 use std::path::Path;
 
@@ -52,19 +53,28 @@ fn main() {
     }
 
     if args[1] == "commit" {
-       let mut commit = commit::commit_file::CommitObject::new();
-       match commit.commit_file() {
-           Ok(()) => {}
-           Err(s) => {
-               eprintln!("{}", s);
-               return;
-           }
-       }
-       return;
+        let mut commit = commit::commit_file::CommitObject::new();
+        match commit.commit_file() {
+            Ok(()) => {}
+            Err(s) => {
+                eprintln!("{}", s);
+                return;
+            }
+        }
+        return;
     }
 
     if args[1] == "tree" {
-        
+        let mut tree = tree::tree_git_object::CommitGet::new();
+        match tree.tree_main() {
+            Ok(_) => {
+                println!("{:?}", tree);
+            }
+            Err(s) => {
+                eprintln!("{}", s);
+                return;
+            }
+        }
     }
 
     println!("command not found");
