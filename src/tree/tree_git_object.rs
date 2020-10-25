@@ -60,7 +60,7 @@ impl CommitGet {
     }
   }
 
-  pub fn set_hasj(&mut self, hash: &str) {
+  pub fn set_hash(&mut self, hash: &str) {
     self.hash = hash.to_string();
   }
 
