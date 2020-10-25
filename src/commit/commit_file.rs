@@ -30,7 +30,7 @@ impl CommitObject {
     }
     self.extraction_dir();
     let mut tree_root = self.generate_tree();
-    let mut tree_main = tree::tree_git_object::Commit::new();
+    let mut tree_main = tree::tree_git_object::CommitGet::new();
     match tree_main.tree_main() {
       Ok(_) => {}
       Err(e) => {

@@ -4,7 +4,7 @@ use std::io::Read;
 use super::super::common::zlib;
 use super::tree_git_object;
 
-impl tree_git_object::Commit {
+impl tree_git_object::CommitGet {
   pub fn tree_go_back(&mut self) -> Result<(), String> {
     let hash = &self.tree.hash;
     match self.tree_file_judge(hash) {

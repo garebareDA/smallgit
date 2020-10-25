@@ -63,5 +63,9 @@ fn main() {
        return;
     }
 
+    if args[1] == "tree" {
+        
+    }
+
     println!("command not found");
 }

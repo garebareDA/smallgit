@@ -20,7 +20,7 @@ pub struct Blob {
 }
 
 #[derive(Clone, Debug)]
-pub struct Commit {
+pub struct CommitGet {
   pub hash: String,
   pub tree: Tree,
 }
@@ -46,7 +46,7 @@ impl Blob {
   }
 }
 
-impl Commit {
+impl CommitGet {
   pub fn new() -> Self {
     Self {
       hash: "".to_string(),
@@ -58,6 +58,10 @@ impl Commit {
         is_edit:false,
       },
     }
+  }
+
+  pub fn set_hasj(&self, hash: &str) {
+    self.hash = hash.to_string();
   }
 
   pub fn tree_main(&mut self) -> Result<bool, String> {

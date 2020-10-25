@@ -1,6 +1,6 @@
 use super::tree_git_object;
 
-impl tree_git_object::Commit {
+impl tree_git_object::CommitGet {
   pub fn check_blob(&self, path: &str, hash: &str) -> bool {
     let tree = &self.tree;
     let size = 0;
