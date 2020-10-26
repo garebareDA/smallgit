@@ -66,7 +66,7 @@ impl CommitObject {
           let mut path_format = line_splits[1].to_string();
           path_format.remove(0);
           path_format.remove(0);
-          let readed = IndexReaded::new(&path_format, line_splits[2], line_splits[1]);
+          let readed = IndexReaded::new(&path_format, line_splits[2], line_splits[0]);
           self.index.push(readed);
         }
         if self.index.is_empty() {

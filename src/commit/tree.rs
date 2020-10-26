@@ -45,9 +45,11 @@ impl commit_file::CommitObject {
       let path_split: Vec<&str> = self.tree_dir[index].split("/").collect();
       if path_split.len() == size {
         let name = &self.tree_dir[index];
+        let name_split:Vec<&str> = name.split("/").collect();
         let mut tree = Tree::new(name, "");
         self.insert_blob(&mut tree);
         tree.tree = self.tree_dir(size + 1, name);
+        tree.name = name_split[name_split.len() - 1].to_string();
         let re = Regex::new(&format!(r"^{}", pearent)).unwrap();
         match re.captures(name) {
           Some(_) => {
@@ -105,10 +107,11 @@ impl commit_file::CommitObject {
         if main_tree.blob[index].name == blob.name {
           main_tree.blob[index] = blob.clone();
           main_tree.is_edit = true;
-          continue;
+          break;
         }
 
-        if main_tree.blob[index].name != blob.name {
+        if index == main_tree.blob.len() - 1 {
+          println!("{:?}", blob);
           main_tree.blob.push(blob.clone());
           main_tree.is_edit = true;
           break;
@@ -126,16 +129,18 @@ impl commit_file::CommitObject {
 
       for index in 0..main_tree.tree.len() {
         if main_tree.tree[index].name == tree.name {
-          self.comparsion_tree(&mut main_tree.tree[index], &mut tree.clone());
-          continue;
+          self.comparsion_tree(&mut tree.clone(), &mut main_tree.tree[index]);
+          main_tree.is_edit = true;
+          break;
         }
 
-        if main_tree.tree[index].name != tree.name && index == main_tree.tree.len() - 1 {
+        if index == main_tree.tree.len() {
           let mut push_tree = tree.clone();
           self.change_edit(&mut push_tree);
           main_tree.is_edit = true;
           main_tree.tree.push(push_tree);
-          self.comparsion_tree(&mut main_tree.tree[index], &mut tree.clone());
+          self.comparsion_tree(&mut tree.clone(), &mut main_tree.tree[index]);
+          break;
         }
       }
     }
