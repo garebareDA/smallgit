@@ -123,7 +123,7 @@ impl CommitGet {
         }
         let decoded = zlib::zlib_dencoder(&buffer);
         let decoded_split: Vec<&str> = decoded.split("\0").collect();
-        let tmp_split: Vec<&str> = decoded_split[0].split("\n").collect();
+        let tmp_split: Vec<&str> = decoded_split[1].split("\n").collect();
         let tree_split: Vec<&str> = tmp_split[0].split(" ").collect();
         let tree_hash = tree_split[1].to_string();
         return Ok(tree_hash);

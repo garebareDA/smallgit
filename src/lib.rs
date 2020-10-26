@@ -3,6 +3,7 @@ pub mod commit;
 pub mod common;
 pub mod init;
 pub mod tree;
+pub mod cat_file;
 
 #[cfg(test)]
 mod test {

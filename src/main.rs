@@ -3,6 +3,7 @@ use smallgit::commit;
 use smallgit::common;
 use smallgit::init;
 use smallgit::tree;
+use smallgit::cat_file;
 use std::env;
 use std::path::Path;
 
@@ -81,6 +82,21 @@ fn main() {
         tree.object_display();
         return;
     }
+
+    if args[1] == "cat-file" {
+        if args.len() != 3 {
+            println!("smallgit cat-file [hash]");
+            return;
+        }
+        match cat_file::display_file::display(&args[2]) {
+            Ok(_) => {},
+            Err(e) => {
+                eprintln!("{}", e);
+                return
+            }
+        }
+        return;
+    } 
 
     println!("command not found");
 }

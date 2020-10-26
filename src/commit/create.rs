@@ -74,7 +74,7 @@ impl commit_file::CommitObject {
         let mut hasher = Sha1::new();
         hasher.input_str(&commit);
         let hash = hasher.result_str();
-        match common::zlib::zlib_encoder(&inner) {
+        match common::zlib::zlib_encoder(&commit) {
           Ok(byte) => {
             let mut tree_file = File::create(format!("./.smallgit/objects/{}", hash)).unwrap();
             let mut main_file = File::create("./.smallgit/refs/main").unwrap();
