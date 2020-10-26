@@ -1,34 +1,34 @@
 use super::tree_git_object;
 
 impl tree_git_object::CommitGet {
-  pub fn check_blob(&self, path: &str, hash: &str) -> bool {
+  pub fn check_blob(&self, path: &str, hash: &str) -> (bool, String) {
     let tree = &self.tree;
     let size = 0;
     let mut path_split: Vec<&str> = path.split("/").collect();
     path_split.remove(0);
     match self.check_blobs(tree, &path_split, size) {
       Ok(hashs) => {
-        return hashs == hash;
+        return (hashs == hash, "change".to_string());
       }
 
       Err(_) => {
-        return false;
+        return (false, "create".to_string());
       }
     }
   }
 
-  pub fn check_tree(&self, path: &str, hash: &str) -> bool {
+  pub fn check_tree(&self, path: &str, hash: &str) -> (bool, String) {
     let tree = &self.tree;
     let size = 0;
     let mut path_split: Vec<&str> = path.split("/").collect();
     path_split.remove(0);
     match self.check_trees(tree, &path_split, size) {
       Ok(hashs) => {
-        return hashs == hash;
+        return (hashs == hash, "change".to_string());
       }
 
       Err(_) => {
-        return false;
+        return (false, "create".to_string());
       }
     }
   }
@@ -47,6 +47,7 @@ impl tree_git_object::CommitGet {
           }
 
           Err(e) => {
+            println!("{:?}", path);
             return Err(e);
           }
         }
@@ -66,7 +67,6 @@ impl tree_git_object::CommitGet {
     let path_len = path.len() - 1;
     for inner_tree in tree.tree.iter() {
       if path_len == size && path[size] == inner_tree.name{
-        println!("{}", inner_tree.name);
         return Ok(inner_tree.hash.to_string());
       }
 

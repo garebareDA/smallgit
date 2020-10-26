@@ -107,7 +107,7 @@ impl commit_file::CommitObject {
           continue;
         }
 
-        if main_tree.blob[index].name != blob.name && index == main_tree.blob.len() - 1 {
+        if main_tree.blob[index].name != blob.name && index == main_tree.blob.len() {
           main_tree.blob.push(blob.clone());
           main_tree.is_edit = true;
         }

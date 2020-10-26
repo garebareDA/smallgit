@@ -29,7 +29,8 @@ pub fn write_index(dir: SerchDir) -> Result<(), String> {
         return Err(e);
       }
     }
-    if !tree.check_blob(path, &hex) {
+    let (check, _) = tree.check_blob(path, &hex);
+    if !check {
       index_file
         .write(&format!("{} {}\n", path, hex).as_bytes())
         .unwrap();
