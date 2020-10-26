@@ -96,7 +96,6 @@ fn main() {
             }
         }
         return;
-    } 
-
+    }
     println!("command not found");
 }
