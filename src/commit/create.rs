@@ -38,7 +38,7 @@ impl commit_file::CommitObject {
       }
 
       for inner_blob in tree.blob.iter() {
-        inner = format!("{}blob {} {}\n", inner, inner_blob.hash, inner_blob.name);
+        inner = format!("{}blob {} {}\n", inner, &inner_blob.hash, &inner_blob.name);
       }
 
       inner.remove(inner.len() - 1);

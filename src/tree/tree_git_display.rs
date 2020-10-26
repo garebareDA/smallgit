@@ -5,6 +5,9 @@ impl CommitGet {
   pub fn object_display(&self) {
     let space = "";
     println!("{}", self.tree.name);
+    for blob in self.tree.blob.iter() {
+      println!(" {} {}", blob.name, blob.hash);
+    }
     self.format_object(&format!(" {}", space), &self.tree);
   }
 

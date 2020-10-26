@@ -17,6 +17,7 @@ pub struct Tree {
 pub struct Blob {
   pub name: String,
   pub hash: String,
+  pub status: String,
 }
 
 #[derive(Clone, Debug)]
@@ -38,10 +39,11 @@ impl Tree {
 }
 
 impl Blob {
-  pub fn new(name: &str, hash: &str) -> Self {
+  pub fn new(name: &str, hash: &str, status:&str) -> Self {
     Self {
       name: name.to_string(),
       hash: hash.to_string(),
+      status:status.to_string(),
     }
   }
 }

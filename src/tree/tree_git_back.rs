@@ -37,7 +37,7 @@ impl tree_git_object::CommitGet {
           let line_split: Vec<&str> = line.split(" ").collect();
           match line_split[0] {
             "blob" => {
-              let blob = tree_git_object::Blob::new(line_split[2],line_split[1]);
+              let blob = tree_git_object::Blob::new(line_split[2],line_split[1], "");println!("{:?}", blob);
               blob_vec.push(blob);
             }
             "tree" => {

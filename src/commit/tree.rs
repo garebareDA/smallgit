@@ -71,11 +71,12 @@ impl commit_file::CommitObject {
       let dir = &tree.name;
       let file = &index.path;
       let hex = &index.hex;
+      let status = &index.status;
       let file_split: Vec<&str> = file.split("/").collect();
       let file_name = file_split[file_split.len() - 1];
 
       if dir == "/" && file_split.len() == 1 {
-        let blob = Blob::new(file_name, hex);
+        let blob = Blob::new(file_name, hex, status);
         blob_vec.push(blob);
         continue;
       }
@@ -83,7 +84,7 @@ impl commit_file::CommitObject {
       let re = Regex::new(&format!(r"^{}/{}", dir, file_name)).unwrap();
       match re.captures(file) {
         Some(_) => {
-          let blob = Blob::new(file_name, hex);
+          let blob = Blob::new(file_name, hex, status);
           blob_vec.push(blob);
         }
         None => {}
@@ -107,9 +108,10 @@ impl commit_file::CommitObject {
           continue;
         }
 
-        if main_tree.blob[index].name != blob.name && index == main_tree.blob.len() {
+        if main_tree.blob[index].name != blob.name {
           main_tree.blob.push(blob.clone());
           main_tree.is_edit = true;
+          break;
         }
       }
     }
