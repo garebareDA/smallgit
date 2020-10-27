@@ -9,7 +9,7 @@ impl commit_file::CommitObject {
       let index_path = &index.path;
       let mut index_path_split: Vec<&str> = index_path.split("/").collect();
       index_path_split.remove(index_path_split.len() - 1);
-      let connect = index_path_split.connect("/");
+      let connect = index_path_split.join("/");
       if connect != "" {
         self.tree_dir.push(connect.clone());
       } else if !index_path_split.is_empty() {
@@ -32,9 +32,9 @@ impl commit_file::CommitObject {
   }
 
   pub fn generate_tree(&mut self) -> Tree {
-    let tree = self.tree_dir(1, "/");
     let mut tree_root = Tree::new("/", "");
-    self.insert_blob(&mut tree_root);
+    let tree = self.tree_dir(1, "/");
+    tree_root.blob = self.insert_blob("/");
     tree_root.tree = tree;
     return tree_root;
   }
@@ -44,14 +44,14 @@ impl commit_file::CommitObject {
     for index in 0..self.tree_dir.len() {
       let path_split: Vec<&str> = self.tree_dir[index].split("/").collect();
       if path_split.len() == size {
-        let name = &self.tree_dir[index];
-        let name_split:Vec<&str> = name.split("/").collect();
+        let name_dir = &self.tree_dir[index];
+        let name_split:Vec<&str> = name_dir.split("/").collect();
+        let name = name_split[name_split.len() - 1];
         let mut tree = Tree::new(name, "");
-        self.insert_blob(&mut tree);
-        tree.tree = self.tree_dir(size + 1, name);
-        tree.name = name_split[name_split.len() - 1].to_string();
+        tree.blob = self.insert_blob(&name_dir);
+        tree.tree = self.tree_dir(size + 1, name_dir);
         let re = Regex::new(&format!(r"^{}", pearent)).unwrap();
-        match re.captures(name) {
+        match re.captures(name_dir) {
           Some(_) => {
             tree_vec.push(tree);
           }
@@ -67,10 +67,10 @@ impl commit_file::CommitObject {
     return tree_vec;
   }
 
-  fn insert_blob(&self, tree: &mut Tree) {
+  fn insert_blob(&self, tree: &str) -> Vec<Blob> {
     let mut blob_vec: Vec<Blob> = Vec::new();
     for index in self.index.iter() {
-      let dir = &tree.name;
+      let dir = tree;
       let file = &index.path;
       let hex = &index.hex;
       let status = &index.status;
@@ -92,7 +92,7 @@ impl commit_file::CommitObject {
         None => {}
       }
     }
-    tree.blob = blob_vec;
+    return blob_vec;
   }
 
   pub fn comparsion_tree(&self, root_tree: &mut Tree, main_tree: &mut Tree) {
@@ -111,7 +111,6 @@ impl commit_file::CommitObject {
         }
 
         if index == main_tree.blob.len() - 1 {
-          println!("{:?}", blob);
           main_tree.blob.push(blob.clone());
           main_tree.is_edit = true;
           break;
