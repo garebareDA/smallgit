@@ -63,10 +63,10 @@ impl CommitObject {
         for line in reader.lines() {
           let line = line.unwrap();
           let line_splits: Vec<&str> = line.split(" ").collect();
-          let mut path_format = line_splits[0].to_string();
+          let mut path_format = line_splits[1].to_string();
           path_format.remove(0);
           path_format.remove(0);
-          let readed = IndexReaded::new(&path_format, line_splits[1]);
+          let readed = IndexReaded::new(&path_format, line_splits[2], line_splits[0]);
           self.index.push(readed);
         }
         if self.index.is_empty() {

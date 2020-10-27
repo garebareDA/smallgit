@@ -1,41 +1,49 @@
-use super::tree_git_object;
+use super::tree_git_object::{Tree, Blob, CommitGet};
+use super::super::common::serch_dir::SerchDir;
 
-impl tree_git_object::CommitGet {
-  pub fn check_blob(&self, path: &str, hash: &str) -> bool {
+impl CommitGet {
+  pub fn check_blob(&self, path: &str, hash: &str) -> (bool, String) {
     let tree = &self.tree;
     let size = 0;
     let mut path_split: Vec<&str> = path.split("/").collect();
     path_split.remove(0);
     match self.check_blobs(tree, &path_split, size) {
       Ok(hashs) => {
-        return hashs == hash;
+        return (hashs == hash, "change".to_string());
       }
 
       Err(_) => {
-        return false;
+        return (false, "create".to_string());
       }
     }
   }
 
-  pub fn check_tree(&self, path: &str, hash: &str) -> bool {
+  pub fn check_remove_blob(&self, dir: &SerchDir) -> Vec<Blob> {
+    let tree = &self.tree;
+    let mut blob_vec:Vec<Blob> = Vec::new();
+    self.check_remove_blobs(&tree,  ".", dir.get_paths_file(), &mut blob_vec);
+    return blob_vec;
+  }
+
+  pub fn check_tree(&self, path: &str, hash: &str) -> (bool, String) {
     let tree = &self.tree;
     let size = 0;
     let mut path_split: Vec<&str> = path.split("/").collect();
     path_split.remove(0);
     match self.check_trees(tree, &path_split, size) {
       Ok(hashs) => {
-        return hashs == hash;
+        return (hashs == hash, "change".to_string());
       }
 
       Err(_) => {
-        return false;
+        return (false, "create".to_string());
       }
     }
   }
 
   fn check_blobs(
     &self,
-    tree: &tree_git_object::Tree,
+    tree: &Tree,
     path: &Vec<&str>,
     size: usize,
   ) -> Result<String, String> {
@@ -62,11 +70,10 @@ impl tree_git_object::CommitGet {
     return Err("not found".to_string());
   }
 
-  fn check_trees(&self, tree: &tree_git_object::Tree, path: &Vec<&str>, size: usize) -> Result<String, String>{
+  fn check_trees(&self, tree: &Tree, path: &Vec<&str>, size: usize) -> Result<String, String>{
     let path_len = path.len() - 1;
     for inner_tree in tree.tree.iter() {
       if path_len == size && path[size] == inner_tree.name{
-        println!("{}", inner_tree.name);
         return Ok(inner_tree.hash.to_string());
       }
 
@@ -85,5 +92,22 @@ impl tree_git_object::CommitGet {
     }
 
     return Err("not found".to_string());
+  }
+
+  pub fn check_remove_blobs(&self, tree:&Tree, format_str:&str,path_vec:&Vec<String>, blob_vec :&mut Vec<Blob>) {
+    for tree in tree.tree.iter() {
+      let path = format!("{}/{}", format_str, tree.name);
+      self.check_remove_blobs(tree, &path, path_vec, blob_vec);
+    }
+
+    'out: for blob in tree.blob.iter() {
+      let path_blob = format!("{}/{}", format_str, blob.name);
+      for path in path_vec.iter() {
+        if &path_blob == path {
+          continue 'out;
+        }
+      }
+      blob_vec.push(Blob::new(&path_blob, &blob.hash, "remove"));
+    }
   }
 }

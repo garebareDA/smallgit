@@ -9,7 +9,7 @@ impl commit_file::CommitObject {
       let index_path = &index.path;
       let mut index_path_split: Vec<&str> = index_path.split("/").collect();
       index_path_split.remove(index_path_split.len() - 1);
-      let connect = index_path_split.connect("/");
+      let connect = index_path_split.join("/");
       if connect != "" {
         self.tree_dir.push(connect.clone());
       } else if !index_path_split.is_empty() {
@@ -32,9 +32,9 @@ impl commit_file::CommitObject {
   }
 
   pub fn generate_tree(&mut self) -> Tree {
-    let tree = self.tree_dir(1, "/");
     let mut tree_root = Tree::new("/", "");
-    self.insert_blob(&mut tree_root);
+    let tree = self.tree_dir(1, "/");
+    tree_root.blob = self.insert_blob("/");
     tree_root.tree = tree;
     return tree_root;
   }
@@ -44,12 +44,14 @@ impl commit_file::CommitObject {
     for index in 0..self.tree_dir.len() {
       let path_split: Vec<&str> = self.tree_dir[index].split("/").collect();
       if path_split.len() == size {
-        let name = &self.tree_dir[index];
+        let name_dir = &self.tree_dir[index];
+        let name_split: Vec<&str> = name_dir.split("/").collect();
+        let name = name_split[name_split.len() - 1];
         let mut tree = Tree::new(name, "");
-        self.insert_blob(&mut tree);
-        tree.tree = self.tree_dir(size + 1, name);
+        tree.blob = self.insert_blob(&name_dir);
+        tree.tree = self.tree_dir(size + 1, name_dir);
         let re = Regex::new(&format!(r"^{}", pearent)).unwrap();
-        match re.captures(name) {
+        match re.captures(name_dir) {
           Some(_) => {
             tree_vec.push(tree);
           }
@@ -65,17 +67,18 @@ impl commit_file::CommitObject {
     return tree_vec;
   }
 
-  fn insert_blob(&self, tree: &mut Tree) {
+  fn insert_blob(&self, tree: &str) -> Vec<Blob> {
     let mut blob_vec: Vec<Blob> = Vec::new();
     for index in self.index.iter() {
-      let dir = &tree.name;
+      let dir = tree;
       let file = &index.path;
       let hex = &index.hex;
+      let status = &index.status;
       let file_split: Vec<&str> = file.split("/").collect();
       let file_name = file_split[file_split.len() - 1];
 
       if dir == "/" && file_split.len() == 1 {
-        let blob = Blob::new(file_name, hex);
+        let blob = Blob::new(file_name, hex, status);
         blob_vec.push(blob);
         continue;
       }
@@ -83,13 +86,13 @@ impl commit_file::CommitObject {
       let re = Regex::new(&format!(r"^{}/{}", dir, file_name)).unwrap();
       match re.captures(file) {
         Some(_) => {
-          let blob = Blob::new(file_name, hex);
+          let blob = Blob::new(file_name, hex, status);
           blob_vec.push(blob);
         }
         None => {}
       }
     }
-    tree.blob = blob_vec;
+    return blob_vec;
   }
 
   pub fn comparsion_tree(&self, root_tree: &mut Tree, main_tree: &mut Tree) {
@@ -102,14 +105,20 @@ impl commit_file::CommitObject {
 
       for index in 0..main_tree.blob.len() {
         if main_tree.blob[index].name == blob.name {
+          let status = &blob.status;
+          if status == "remove" {
+            main_tree.blob.remove(index);
+            break;
+          }
           main_tree.blob[index] = blob.clone();
           main_tree.is_edit = true;
-          continue;
+          break;
         }
 
-        if main_tree.blob[index].name != blob.name && index == main_tree.blob.len() - 1 {
+        if index == main_tree.blob.len() - 1 {
           main_tree.blob.push(blob.clone());
           main_tree.is_edit = true;
+          break;
         }
       }
     }
@@ -124,22 +133,28 @@ impl commit_file::CommitObject {
 
       for index in 0..main_tree.tree.len() {
         if main_tree.tree[index].name == tree.name {
-          self.comparsion_tree(&mut main_tree.tree[index], &mut tree.clone());
-          continue;
+          self.comparsion_tree(&mut tree.clone(), &mut main_tree.tree[index]);
+          let tree = &main_tree.tree[index];
+          if tree.tree.is_empty() && tree.blob.is_empty(){
+            main_tree.tree.remove(index);
+          }
+          main_tree.is_edit = true;
+          break;
         }
 
-        if main_tree.tree[index].name != tree.name && index == main_tree.tree.len() - 1 {
+        if index == main_tree.tree.len() - 1 {
           let mut push_tree = tree.clone();
           self.change_edit(&mut push_tree);
           main_tree.is_edit = true;
           main_tree.tree.push(push_tree);
-          self.comparsion_tree(&mut main_tree.tree[index], &mut tree.clone());
+          self.comparsion_tree(&mut tree.clone(), &mut main_tree.tree[index]);
+          break;
         }
       }
     }
   }
 
-  fn change_edit(&self, tree:&mut Tree) {
+  fn change_edit(&self, tree: &mut Tree) {
     tree.is_edit = true;
     for index in 0..tree.tree.len() {
       tree.tree[index].is_edit = true;

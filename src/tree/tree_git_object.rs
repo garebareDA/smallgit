@@ -17,6 +17,7 @@ pub struct Tree {
 pub struct Blob {
   pub name: String,
   pub hash: String,
+  pub status: String,
 }
 
 #[derive(Clone, Debug)]
@@ -38,10 +39,11 @@ impl Tree {
 }
 
 impl Blob {
-  pub fn new(name: &str, hash: &str) -> Self {
+  pub fn new(name: &str, hash: &str, status:&str) -> Self {
     Self {
       name: name.to_string(),
       hash: hash.to_string(),
+      status:status.to_string(),
     }
   }
 }
@@ -60,7 +62,7 @@ impl CommitGet {
     }
   }
 
-  pub fn set_hasj(&mut self, hash: &str) {
+  pub fn set_hash(&mut self, hash: &str) {
     self.hash = hash.to_string();
   }
 
@@ -123,7 +125,7 @@ impl CommitGet {
         }
         let decoded = zlib::zlib_dencoder(&buffer);
         let decoded_split: Vec<&str> = decoded.split("\0").collect();
-        let tmp_split: Vec<&str> = decoded_split[0].split("\n").collect();
+        let tmp_split: Vec<&str> = decoded_split[1].split("\n").collect();
         let tree_split: Vec<&str> = tmp_split[0].split(" ").collect();
         let tree_hash = tree_split[1].to_string();
         return Ok(tree_hash);
