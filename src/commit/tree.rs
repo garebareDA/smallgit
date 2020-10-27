@@ -45,7 +45,7 @@ impl commit_file::CommitObject {
       let path_split: Vec<&str> = self.tree_dir[index].split("/").collect();
       if path_split.len() == size {
         let name_dir = &self.tree_dir[index];
-        let name_split:Vec<&str> = name_dir.split("/").collect();
+        let name_split: Vec<&str> = name_dir.split("/").collect();
         let name = name_split[name_split.len() - 1];
         let mut tree = Tree::new(name, "");
         tree.blob = self.insert_blob(&name_dir);
@@ -105,6 +105,11 @@ impl commit_file::CommitObject {
 
       for index in 0..main_tree.blob.len() {
         if main_tree.blob[index].name == blob.name {
+          let status = &blob.status;
+          if status == "remove" {
+            main_tree.blob.remove(index);
+            break;
+          }
           main_tree.blob[index] = blob.clone();
           main_tree.is_edit = true;
           break;
@@ -129,11 +134,15 @@ impl commit_file::CommitObject {
       for index in 0..main_tree.tree.len() {
         if main_tree.tree[index].name == tree.name {
           self.comparsion_tree(&mut tree.clone(), &mut main_tree.tree[index]);
+          let tree = &main_tree.tree[index];
+          if tree.tree.is_empty() && tree.blob.is_empty(){
+            main_tree.tree.remove(index);
+          }
           main_tree.is_edit = true;
           break;
         }
 
-        if index == main_tree.tree.len() {
+        if index == main_tree.tree.len() - 1 {
           let mut push_tree = tree.clone();
           self.change_edit(&mut push_tree);
           main_tree.is_edit = true;
@@ -145,7 +154,7 @@ impl commit_file::CommitObject {
     }
   }
 
-  fn change_edit(&self, tree:&mut Tree) {
+  fn change_edit(&self, tree: &mut Tree) {
     tree.is_edit = true;
     for index in 0..tree.tree.len() {
       tree.tree[index].is_edit = true;

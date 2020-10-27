@@ -67,7 +67,7 @@ pub fn create_objects() -> Result<(), String> {
         let line_splits: Vec<&str> = line.split(" ").collect();
         let add_path = Path::new(line_splits[1]);
         if !add_path.exists() {
-          return Err("file not found error".to_string());
+          continue;
         }
 
         let content = fs::read_to_string(add_path).unwrap();
