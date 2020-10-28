@@ -3,7 +3,7 @@ use super::super::common::serch_dir::SerchDir;
 use super::super::tree;
 use std::fs;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
+use std::io::Write;
 use std::path::Path;
 
 pub fn write_index(dir: SerchDir) -> Result<(), String> {
