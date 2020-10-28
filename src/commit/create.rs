@@ -1,8 +1,6 @@
 use super::super::common;
 use super::super::tree::tree_git_object::Tree;
 use super::commit_file;
-use crypto::digest::Digest;
-use crypto::sha1::Sha1;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -43,9 +41,7 @@ impl commit_file::CommitObject {
 
       inner.remove(inner.len() - 1);
       inner = format!("tree {}\0{}", inner.as_bytes().len(), inner);
-      let mut hasher = Sha1::new();
-      hasher.input_str(&inner);
-      let hash = hasher.result_str();
+      let hash = common::sha1::sha1_gen(&inner);
       match common::zlib::zlib_encoder(&inner) {
         Ok(byte) => {
           let mut tree_file = File::create(format!("./.smallgit/objects/{}", hash)).unwrap();
@@ -71,9 +67,7 @@ impl commit_file::CommitObject {
       Ok(main_ref) => {
         let inner = format!("tree {}\nbfore {}", hash, main_ref);
         let commit = format!("commit {}\0{}", inner.as_bytes().len(), inner);
-        let mut hasher = Sha1::new();
-        hasher.input_str(&commit);
-        let hash = hasher.result_str();
+        let hash = common::sha1::sha1_gen(&commit);
         match common::zlib::zlib_encoder(&commit) {
           Ok(byte) => {
             let mut tree_file = File::create(format!("./.smallgit/objects/{}", hash)).unwrap();

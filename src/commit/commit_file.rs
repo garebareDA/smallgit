@@ -1,12 +1,10 @@
 use super::super::tree;
 use super::super::tree::tree_git_object::Tree;
-use super::index_readed::IndexReaded;
+use super::super::common::index_readed;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
 
 pub struct CommitObject {
-  pub index: Vec<IndexReaded>,
+  pub index: Vec<index_readed::IndexReaded>,
   pub tree_dir: Vec<String>,
   pub tree: Tree,
 }
@@ -22,8 +20,10 @@ impl CommitObject {
   }
 
   pub fn commit_file(&mut self) -> Result<(), String> {
-    match self.read_index() {
-      Ok(()) => {}
+    match index_readed::read_index() {
+      Ok(index) => {
+        self.index = index;
+      }
       Err(s) => {
         return Err(s);
       }
@@ -50,31 +50,6 @@ impl CommitObject {
       },
       Err(e) => {
         return Err(e);
-      }
-    }
-    return Ok(());
-  }
-
-  fn read_index(&mut self) -> Result<(), String> {
-    let index_path = Path::new("./.smallgit/index");
-    match File::open(index_path) {
-      Ok(file) => {
-        let reader = BufReader::new(file);
-        for line in reader.lines() {
-          let line = line.unwrap();
-          let line_splits: Vec<&str> = line.split(" ").collect();
-          let mut path_format = line_splits[1].to_string();
-          path_format.remove(0);
-          path_format.remove(0);
-          let readed = IndexReaded::new(&path_format, line_splits[2], line_splits[0]);
-          self.index.push(readed);
-        }
-        if self.index.is_empty() {
-          return Err("file not staged".to_string());
-        }
-      }
-      Err(_) => {
-        return Err("index file not found error".to_string());
       }
     }
     return Ok(());
