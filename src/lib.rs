@@ -1,9 +1,9 @@
 pub mod add;
+pub mod cat_file;
 pub mod commit;
 pub mod common;
 pub mod init;
 pub mod tree;
-pub mod cat_file;
 
 #[cfg(test)]
 mod test {
@@ -158,5 +158,31 @@ mod test {
     fs::remove_dir_all("./.smallgit")
       .ok()
       .expect("remove error");
+  }
+
+  #[test]
+  fn status() {
+    match init::init_create::create_init_file() {
+      Ok(_) => {}
+      Err(_) => {}
+    }
+
+    let mut paths = common::serch_dir::SerchDir::new("./");
+    paths.serch_dir().unwrap();
+    match add::add_files::write_index(paths) {
+      Ok(()) => {}
+      Err(_) => {}
+    }
+
+    match common::index_readed::read_index() {
+      Ok(indexs) => {
+        for index in indexs {
+          println!("{} {}", index.status, index.path);
+        }
+      }
+      Err(e) => {
+        panic!(e);
+      }
+    }
   }
 }
