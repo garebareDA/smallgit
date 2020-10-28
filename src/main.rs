@@ -56,7 +56,9 @@ fn main() {
     if args[1] == "commit" {
         let mut commit = commit::commit_file::CommitObject::new();
         match commit.commit_file() {
-            Ok(()) => {}
+            Ok(()) => {
+                println!("commit! {}", commit.get_hash());
+            }
             Err(s) => {
                 eprintln!("{}", s);
                 return;
