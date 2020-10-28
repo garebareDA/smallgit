@@ -97,5 +97,21 @@ fn main() {
         }
         return;
     }
+
+    if args[1] == "status" {
+        match common::index_readed::read_index() {
+            Ok(indexs) => {
+                for index in indexs {
+                    println!("{} {}", index.status, index.path);
+                }
+            }
+            Err(e) => {
+                eprintln!("{}", e);
+                return
+            }
+        }
+        return;
+    }
+
     println!("command not found");
 }
