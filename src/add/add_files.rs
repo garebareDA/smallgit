@@ -13,7 +13,6 @@ pub fn write_index(dir: SerchDir) -> Result<(), String> {
     return Err("index file not found".to_string());
   }
   let mut index_file = File::create(index_path).unwrap();
-
   let mut tree = tree::tree_git_object::CommitGet::new();
   match tree.tree_main() {
     Ok(_) => {}
@@ -38,7 +37,6 @@ pub fn write_index(dir: SerchDir) -> Result<(), String> {
   if remove_file.is_empty() {
     return Ok(());
   }
-
   for remove in remove_file.iter() {
     index_file
       .write(&format!("remove {} {}\n", remove.name, remove.hash).as_bytes())
@@ -70,7 +68,6 @@ pub fn create_objects() -> Result<(), String> {
         }
       }
     }
-
     Err(_) => {
       return Err("There are no modified files".to_string());
     }

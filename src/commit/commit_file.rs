@@ -41,6 +41,7 @@ impl CommitObject {
         Ok(()) => {
           self.commit_hash = hash;
           self.clear_index();
+          return Ok(());
         }
         Err(e) => {
           return Err(e);
@@ -50,7 +51,6 @@ impl CommitObject {
         return Err(e);
       }
     }
-    return Ok(());
   }
 
   fn clear_index(&self) {
