@@ -1,6 +1,6 @@
+use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::fs::File;
 
 #[derive(Clone, Debug)]
 pub struct IndexReaded {
@@ -10,11 +10,11 @@ pub struct IndexReaded {
 }
 
 impl IndexReaded {
-  pub fn new(path: &str, hex: &str, status:&str) -> Self {
+  pub fn new(path: &str, hex: &str, status: &str) -> Self {
     Self {
       path: path.to_string(),
       hex: hex.to_string(),
-      status:status.to_string(),
+      status: status.to_string(),
     }
   }
 }
@@ -43,4 +43,35 @@ pub fn read_index() -> Result<Vec<IndexReaded>, String> {
     }
   }
   return Ok(index_vec);
+}
+
+pub fn index_display(indexs: &Vec<IndexReaded>) {
+  let mut remove = 0;
+  let mut change = 0;
+  let mut create = 0;
+  let mut display = "".to_string();
+  for index in indexs {
+    let status = &index.status;
+    if status == "remove" {
+      remove += 1;
+    } else if status == "create" {
+      create += 1;
+    } else if status == "change" {
+      change += 1;
+    }
+  }
+
+  if create != 0 {
+    display = format!("{} {}file create", display, create);
+  }
+
+  if change != 0 {
+    display = format!("{} {}file change", display, change);
+  }
+
+  if remove != 0 {
+    display = format!("{} {}file remove", display, remove);
+  }
+
+  println!("{}", display);
 }

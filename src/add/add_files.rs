@@ -50,7 +50,7 @@ pub fn create_objects() -> Result<(), String> {
   let objects_path = "./.smallgit/objects";
   match common::index_readed::read_index() {
     Ok(indexs) => {
-      for index in indexs {
+      for index in indexs.iter() {
         let path = &format!("./{}", index.path);
         let add_path = Path::new(path);
         if !add_path.exists() {
@@ -67,6 +67,7 @@ pub fn create_objects() -> Result<(), String> {
           Err(_) => return Err("zlib encode error".to_string()),
         }
       }
+      common::index_readed::index_display(&indexs);
     }
     Err(_) => {
       return Err("There are no modified files".to_string());
