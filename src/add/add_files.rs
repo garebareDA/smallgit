@@ -7,7 +7,6 @@ use std::io::Write;
 use std::path::Path;
 
 pub fn write_index(dir: SerchDir) -> Result<(), String> {
-  //indexステータスをなしでに書き込み
   let index_path = Path::new("./.smallgit/index");
   if !index_path.exists() {
     return Err("index file not found".to_string());
