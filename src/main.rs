@@ -1,15 +1,16 @@
 use smallgit::add;
+use smallgit::cat_file;
 use smallgit::commit;
 use smallgit::common;
 use smallgit::init;
 use smallgit::tree;
-use smallgit::cat_file;
 use std::env;
 use std::path::Path;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() == 1 {
+        println!("args error");
         return;
     }
 
@@ -67,7 +68,7 @@ fn main() {
         return;
     }
 
-    if args[1] == "tree"{
+    if args[1] == "tree" {
         if args.len() != 3 {
             println!("smallgit tree [hash]");
             return;
@@ -85,16 +86,39 @@ fn main() {
         return;
     }
 
+    if args[1] == "clone" {
+        if args.len() != 3 {
+            println!("smallgit clone [hash]");
+            return;
+        }
+        let mut tree = tree::tree_git_object::CommitGet::new();
+        tree.set_hash(&args[2]);
+        match tree.tree_main() {
+            Ok(_) => {}
+            Err(s) => {
+                eprintln!("{}", s);
+                return;
+            }
+        }
+        match tree.object_clone() {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("{}", e.to_string());
+            }
+        }
+        return;
+    }
+
     if args[1] == "cat-file" {
         if args.len() != 3 {
             println!("smallgit cat-file [hash]");
             return;
         }
         match cat_file::display_file::display(&args[2]) {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 eprintln!("{}", e);
-                return
+                return;
             }
         }
         return;
@@ -109,7 +133,7 @@ fn main() {
             }
             Err(e) => {
                 eprintln!("{}", e);
-                return
+                return;
             }
         }
         return;
